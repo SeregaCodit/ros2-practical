@@ -13,7 +13,7 @@ Practical robotics course project.
 ## Start environment
 
     docker compose up -d --build
-    docker compose exec dev bash
+    docker compose exec ros2 bash
 
 ## ROS check
 
