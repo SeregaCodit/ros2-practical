@@ -20,6 +20,6 @@ Practical robotics course project.
 ros2 run demo_nodes_cpp talker
 ros2 run demo_nodes_py listener
 
-## Workspace - [ros2_ws/src](ros2-ws)
+## Workspace - [ros2-ws/src](ros2-ws)
 
 ## Hrdware inventory - [docs/hardware.md](docs/hardware.md)
