@@ -1,0 +1,19 @@
+
+# Local Docker configuration
+.env
+
+# ROS 2 / colcon
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor
+.vscode/
+
+# Temporary files
+*.swp
+*~

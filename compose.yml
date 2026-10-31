@@ -1,0 +1,30 @@
+
+services:
+  ros2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ROS_DISTRO: lyrical
+        USERNAME: ros
+        USER_UID: ${USER_UID:?Set USER_UID in .env}
+        USER_GID: ${USER_GID:?Set USER_GID in .env}
+
+    image: ros2_practical:lyrical
+    container_name: ros2_practical_dev_container
+
+    network_mode: host
+    ipc: host
+
+    volumes:
+      - ./ros2-ws:/ros2-ws
+
+    environment:
+      ROS_DOMAIN_ID: "42"
+      ROS_LOCALHOST_ONLY: "0"
+      DISPLAY: ${DISPLAY:-}
+
+    stdin_open: true
+    tty: true
+
+    command: sleep infinity
