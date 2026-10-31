@@ -12,14 +12,14 @@ Practical robotics course project.
 
 ## Start environment
 
-docker compose up -d --build
-docker compose exec dev bash
+    docker compose up -d --build
+    docker compose exec dev bash
 
 ## ROS check
 
 ros2 run demo_nodes_cpp talker
 ros2 run demo_nodes_py listener
 
-## Workspace
+## Workspace - [ros2_ws/src](ros2-ws)
 
-ros2_ws/src
+## Hrdware inventory - [docs/hardware.md](docs/hardware.md)
