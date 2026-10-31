@@ -3,9 +3,9 @@
 .env
 
 # ROS 2 / colcon
-ros2_ws/build/
-ros2_ws/install/
-ros2_ws/log/
+ros2-ws/build/
+ros2-ws/install/
+ros2-ws/log/
 
 # Python
 __pycache__/
