@@ -1,8 +1,6 @@
-#!usr/bin/env bash
 #!/usr/bin/env bash
-set -eo pipefail
-
-source /opt/ros/lyrical/setup.bash
+set -euo pipefail
+WORKSPACE="/ros2-ws"
 
 echo
 echo "=== ROS 2 Environment Doctor ==="
@@ -14,7 +12,12 @@ cat /etc/os-release
 # TODO: Check ROS_DISTRO
 echo
 echo "=== CHECK ROS_DISTRO =="
-echo "${ROS_DISTRO}"
+if [[ "${ROS_DISTRO:-}" != "lyrical" ]]; then
+    echo "[ERROR] Expected ROS 2 Lyrical"
+    exit 1
+fi
+
+echo "[OK] ROS_DISTRO: $ROS_DISTRO"
 # TODO: Check Python and C++ compiler
 echo
 echo "=== CHECK PYTHON AND C++ COMPILER ==="
@@ -40,7 +43,15 @@ else
     exit 1
 fi
 # TODO: Check ROS workspace
-echo "=== CHECK ROS WORSPACE ==="
-echo ${WORSPACE}
+echo "=== CHECK ROS WORKSPACE ==="
+echo
+if [[ -d "$WORKSPACE" ]]; then
+    echo "[OK] Workspace exists: $WORKSPACE"
+else
+    echo "[ERROR] Workspace not found: $WORKSPACE" >&2
+    exit 1
+fi
+
+echo
 
 echo "=== ALL CHECKS OK ==="
