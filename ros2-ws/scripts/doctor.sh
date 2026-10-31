@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
-set -euo pipefail
-WORKSPACE="/ros2-ws"
+
+set -eo pipefail
+
+set +u
+source /opt/ros/lyrical/setup.bash
+set -u
+
+WORKSPACE="/ros2-ws/src"
 
 echo
 echo "=== ROS 2 Environment Doctor ==="
@@ -8,7 +14,14 @@ echo "=== ROS 2 Environment Doctor ==="
 # TODO: Check Ubuntu version
 echo
 echo "=== CHECK UBUNTU VERSION ==="
-cat /etc/os-release
+source /etc/os-release
+
+if [[ "$ID" == "ubuntu" && "$VERSION_ID" == "26.04" ]]; then
+    echo "[OK] Ubuntu $VERSION_ID"
+else
+    echo "[ERROR] Expected Ubuntu 26.04, got: $PRETTY_NAME" >&2
+    exit 1
+fi
 # TODO: Check ROS_DISTRO
 echo
 echo "=== CHECK ROS_DISTRO =="
