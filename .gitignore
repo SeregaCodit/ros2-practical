@@ -17,3 +17,7 @@ __pycache__/
 # Temporary files
 *.swp
 *~
+
+# Linux core dumps
+core
+core.[0-9]*
