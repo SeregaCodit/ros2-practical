@@ -18,11 +18,13 @@ services:
 
     volumes:
       - ./ros2-ws:/ros2-ws
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro  # Allow GUI applications to connect to the host X server. 
 
     environment:
       ROS_DOMAIN_ID: "42"
       ROS_LOCALHOST_ONLY: "0"
-      DISPLAY: ${DISPLAY:-}
+      DISPLAY: ${DISPLAY:-:0}
+      QT_QPA_PLATFORM: xcb
 
     stdin_open: true
     tty: true
