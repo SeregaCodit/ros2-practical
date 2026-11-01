@@ -11,7 +11,6 @@ WORKSPACE="/ros2-ws/src"
 echo
 echo "=== ROS 2 Environment Doctor ==="
 
-# TODO: Check Ubuntu version
 echo
 echo "=== CHECK UBUNTU VERSION ==="
 source /etc/os-release
@@ -22,7 +21,7 @@ else
     echo "[ERROR] Expected Ubuntu 26.04, got: $PRETTY_NAME" >&2
     exit 1
 fi
-# TODO: Check ROS_DISTRO
+
 echo
 echo "=== CHECK ROS_DISTRO =="
 if [[ "${ROS_DISTRO:-}" != "lyrical" ]]; then
@@ -31,14 +30,14 @@ if [[ "${ROS_DISTRO:-}" != "lyrical" ]]; then
 fi
 
 echo "[OK] ROS_DISTRO: $ROS_DISTRO"
-# TODO: Check Python and C++ compiler
+
 echo
 echo "=== CHECK PYTHON AND C++ COMPILER ==="
 c++ --version
 echo
 python3 --version
 echo
-# TODO: Check colcon
+
 echo "=== CHECK COLCON IS AVAILABLE ==="
 if command -v colcon >/dev/null 2>&1; then
     echo "[OK] colcon available: $(command -v colcon)"
@@ -46,7 +45,7 @@ else
     echo "[ERROR] colcon not found"
     exit 1
 fi
-# TODO: Check ros_gz_bridge
+
 echo
 echo "=== CHECK ROS_GZ_BRIDGE ==="
 if ros2 pkg prefix ros_gz_bridge >/dev/null 2>&1; then
@@ -55,7 +54,7 @@ else
     echo "[ERROR] ros_gz_bridge not found"
     exit 1
 fi
-# TODO: Check ROS workspace
+
 echo "=== CHECK ROS WORKSPACE ==="
 echo
 if [[ -d "$WORKSPACE" ]]; then
