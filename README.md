@@ -23,3 +23,5 @@ Practical robotics course project.
 ## Workspace - [ros2-ws/src](ros2-ws)
 
 ## Hrdware inventory - [docs/hardware.md](docs/hardware.md)
+
+## [troubleshooting](docs/troubleshooting.md)
