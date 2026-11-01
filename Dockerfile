@@ -37,7 +37,10 @@ RUN apt-get update && apt-get install -y \
     gpiod \
     libgpiod-dev \
     python3-libgpiod \
-    # Foxglove Bridge (instead of RQt)
+    # RQt tools may be commented out if using Foxglove Bridge instead. 
+    ros-${ROS_DISTRO}-rqt \
+    ros-${ROS_DISTRO}-rqt-graph \
+    # Foxglove Bridge (instead of RQt) may be commented out if using RQt instead
     ros-${ROS_DISTRO}-foxglove-bridge \
     # gazebo
     ros-${ROS_DISTRO}-ros-gz \
