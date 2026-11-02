@@ -84,9 +84,13 @@ RUN set -eux; \
 RUN mkdir -p /ros2-ws/src \
     && chown -R "${USER_UID}:${USER_GID}" /ros2-ws
 
-# Install entrypoint with a fixed path
-COPY entrypoint.sh /usr/local/bin/ros-entrypoint
-RUN chmod +x /usr/local/bin/ros-entrypoint
+# Install entrypoint with a fixed path => does not work on NTFS ssd
+# COPY entrypoint.sh /usr/local/bin/ros-entrypoint
+# RUN chmod +x /usr/local/bin/ros-entrypoint
+
+# Copy entrypoint with explicit executable permissions => 
+COPY --chmod=755 entrypoint.sh /usr/local/bin/ros-entrypoint 
+
 # Configure interactive shell
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" \
         >> "/home/${USERNAME}/.bashrc" \
