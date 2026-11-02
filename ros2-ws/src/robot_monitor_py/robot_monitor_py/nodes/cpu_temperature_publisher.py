@@ -5,17 +5,20 @@ from rclpy.node import Node
 from rclpy.executors import ExternalShutdownException
 from std_msgs.msg import Float32
 
+from ..core.interfaces.icpu_temperature_publisher import ICpuTemperaturePublisher
 
-TOPIC_NAME = '/robot/diagnostics/cpu_temperature'
+
+TOPIC_NAME = '/robot/diagnostics/cpu_temperature_float32'
 TERMAL_PATH = Path('/sys/class/thermal/thermal_zone0/temp')
 
 
-class CPUTemperaturePublisher(Node):
+class CPUTemperaturePublisher(Node, ICpuTemperaturePublisher):
     def __init__(self) -> None:
         super().__init__('cpu_temperature_publisher')
         self.publisher_ = self.create_publisher(Float32, TOPIC_NAME, 10)
         self.timer = self.create_timer(1.0, self.publish_cpu_temperature)
         self.get_logger().info("CPU Temperature Publisher has been started.")
+        self.get_logger().warning("In futer use improved node: cpu_publisher_temperature_v2")
 
     def publish_cpu_temperature(self) -> None:
         try:
@@ -35,6 +38,7 @@ class CPUTemperaturePublisher(Node):
 
 
 def main(args=None) -> None:
+
     try:
         with rclpy.init(args=args):
             node = CPUTemperaturePublisher()

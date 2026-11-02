@@ -16,7 +16,7 @@ setup(
     zip_safe=True,
     maintainer='ros',
     maintainer_email='ros@todo.todo',
-    description='TODO: Package description',
+    description='cpu temperature monitoring',
     license='Apache-2.0',
     extras_require={
         'test': [
@@ -25,7 +25,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'cpu_temperature_publisher = robot_monitor_py.cpu_temperature_publisher:main'
+            'cpu_temperature_publisher = robot_monitor_py.nodes.cpu_temperature_publisher:main',
+            "cpu_temperature_publisher_v2 = robot_monitor_py.nodes.cpu_temperature_publisher_v2:main"
         ],
     },
 )

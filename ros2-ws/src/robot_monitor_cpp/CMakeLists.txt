@@ -9,8 +9,10 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 add_executable(cpu_temperature_listener src/cpu_temperature_listener.cpp)
+add_executable(cpu_temperature_listener_v2 src/cpu_temperature_listener_v2.cpp)
 
 target_link_libraries(cpu_temperature_listener
   PRIVATE 
@@ -18,9 +20,15 @@ target_link_libraries(cpu_temperature_listener
     std_msgs::std_msgs
 )
 
+target_link_libraries(cpu_temperature_listener_v2
+  PRIVATE 
+    rclcpp::rclcpp
+    sensor_msgs::sensor_msgs
+)
+
 INSTALL(
   TARGETS 
-  cpu_temperature_listener
+  cpu_temperature_listener cpu_temperature_listener_v2
   DESTINATION lib/${PROJECT_NAME}
 )
 
