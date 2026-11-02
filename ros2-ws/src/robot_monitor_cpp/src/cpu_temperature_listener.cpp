@@ -10,6 +10,12 @@ public:
     CpuTemperatureListener()
     : Node("cpu_tremperature_listener")
     {
+
+        RCLCPP_WARN(this->get_logger(), 
+            "IF TALKER IS RUNNING BUT YOU CAN'T SEE DATA - CHECK RUNNING TALKER'S VERSION. \
+            USE cpu_temperature_listener_v2 with cpu_temperature_publiser_v2" 
+        );
+
         subscription_ = this->create_subscription<std_msgs::msg::Float32>(
             "/robot/diagnostics/cpu_temperature",
             rclcpp::QoS(10),
@@ -29,7 +35,7 @@ private:
 int main(int argc, char ** argv)
 {
     rclcpp::init(argc, argv);
-
+    
     auto node = std::make_shared<CpuTemperatureListener>();
 
     rclcpp::spin(node);

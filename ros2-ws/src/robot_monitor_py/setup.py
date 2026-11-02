@@ -25,7 +25,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'cpu_temperature_publisher = robot_monitor_py.cpu_temperature_publisher:main'
+            'cpu_temperature_publisher = robot_monitor_py.nodes.cpu_temperature_publisher:main',
+            "cpu_temperature_publisher_v2 = robot_monitor_py.nodes.cpu_temperature_publisher_v2:main"
         ],
     },
 )
