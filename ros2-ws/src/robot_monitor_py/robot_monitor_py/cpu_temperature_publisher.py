@@ -29,8 +29,9 @@ class CPUTemperaturePublisher(Node):
         message.data = temperature_celsius
 
         self.publisher_.publish(message)
-
+    
         self.get_logger().info(f"CPU temperature: {temperature_celsius:.1f} C")
+
 
 
 def main(args=None) -> None:
