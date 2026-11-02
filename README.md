@@ -25,3 +25,6 @@ Practical robotics course project.
 ## [Hrdware inventory](docs/hardware.md)
 
 ## [troubleshooting](docs/troublesootings/troubleshooting.md)
+
+### notes from lessons 
+* [lesson02 - ros_graph packages pubsub foxglove_bridge](docs/lessons/lesson02_ros_graph_packages_pubsub.md)

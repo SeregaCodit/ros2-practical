@@ -8,7 +8,20 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+
+add_executable(cpu_temperature_alarm_notificator src/cpu_temperature_alarm_notificator.cpp)
+
+target_link_libraries(cpu_temperature_alarm_notificator
+  PRIVATE
+    rclcpp::rclcpp
+    sensor_msgs::sensor_msgs
+)
+
+INSTALL(
+  TARGETS cpu_temperature_alarm_notificator
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

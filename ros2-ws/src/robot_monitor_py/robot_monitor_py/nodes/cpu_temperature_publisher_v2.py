@@ -16,7 +16,7 @@ FRAME_ID = "base_link"
 
 class CpuTemperaturePublisherV2(Node, ICpuTemperaturePublisher):
     def __init__(self) -> None:
-        super().__init__("cpu_temperature_publisher")
+        super().__init__("cpu_temperature_publisher_v2")
         self.publisher_ = self.create_publisher(Temperature, TOPIC_NAME, 10)
         self.timer = self.create_timer(1.0, self.publish_cpu_temperature)
         self.get_logger().info("CPU Temperature Publisher has been started.")

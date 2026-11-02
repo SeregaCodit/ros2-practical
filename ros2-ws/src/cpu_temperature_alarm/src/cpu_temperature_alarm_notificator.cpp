@@ -1,0 +1,55 @@
+#include <memory>
+
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/temperature.hpp"
+
+using namespace std::placeholders;
+
+
+class CpuTemperatureAlarmNotificator : public rclcpp::Node
+{
+public:
+    CpuTemperatureAlarmNotificator()
+    : Node("cpu_temperature_alarm_notificator")
+    {
+        this->declare_parameter("safe_temperature_c", 80.0);
+
+        safe_temperature_c_ = this->get_parameter("safe_temperature_c").as_double();
+
+        subscription_ = this->create_subscription<sensor_msgs::msg::Temperature>(
+            "/robot/diagnostics/cpu_temperature",
+            rclcpp::QoS(10),
+            std::bind(&CpuTemperatureAlarmNotificator::callback, this, _1)
+        );
+    }
+
+private:
+    void callback(const sensor_msgs::msg::Temperature::SharedPtr msg)
+    {
+        auto current_temp = msg->temperature;
+
+        if (current_temp > this->safe_temperature_c_)
+        {
+            if (in_range_) {in_range_ = !in_range_;}
+            RCLCPP_WARN(this->get_logger(), "TEMPERATURE IS TO HIGHT: %.1f", current_temp);
+        } else {
+            if (!in_range_){
+                in_range_ = !in_range_;
+                RCLCPP_INFO(this->get_logger(), "CPU TEMPERATURE IN SAFE RANGE");
+            }
+        };
+    }
+
+    rclcpp::Subscription<sensor_msgs::msg::Temperature>::SharedPtr subscription_;
+    float safe_temperature_c_;
+    bool in_range_ = true;
+};
+
+
+int main(int argc, char ** argv)
+{
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<CpuTemperatureAlarmNotificator>());
+    rclcpp::shutdown();
+    return 0;
+}
