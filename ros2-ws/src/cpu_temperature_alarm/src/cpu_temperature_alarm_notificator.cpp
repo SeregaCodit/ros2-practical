@@ -30,16 +30,17 @@ private:
         const double safe_temperature_c = this->get_parameter("safe_temperature_c").as_double();
         const double warning_temperature_c = this->get_parameter("warning_temperature_c").as_double();
 
-        if (current_temp >= warning_temperature_c){
+               
+        if ((current_temp >= safe_temperature_c) && in_range_){
+            in_range_ = !in_range_;
+            RCLCPP_WARN(this->get_logger(), "TEMPERATURE IS TO HIGHT: %.1f", current_temp);
+        } else if (current_temp >= warning_temperature_c){
             RCLCPP_WARN_THROTTLE(
                 this->get_logger(),  
                 *this->get_clock(),
                 2000,
-                "CPU TEMPERATURE IN DANGER RANGE"
+                "CPU TEMPERATURE IN DANGER RANGE: %.1f", current_temp
             );
-        } else if ((current_temp >= safe_temperature_c) && in_range_){
-            in_range_ = !in_range_;
-            RCLCPP_WARN(this->get_logger(), "TEMPERATURE IS TO HIGHT: %.1f", current_temp);
         } else if ((current_temp < safe_temperature_c) && !in_range_){
             in_range_ = !in_range_;
             RCLCPP_INFO(this->get_logger(), "CPU TEMPERATURE IN SAFE RANGE");
