@@ -26,6 +26,14 @@ example:
 
     ros2 run robot_monitor_cpp cpu_temperature_listener_v2
 
+### rqt_graph
+    ros2 run rqt_graph rqt_graph
+
+check `Nodes/Topics (active)` and press `Refresh button`
+
+![ros_graph](../attachments/images/lesson02_ros_graph.png)
+
+
 ### run foxglove bridge
 you can run the container on dev pc and run foxglove bridge on it
 
@@ -33,6 +41,7 @@ you can run the container on dev pc and run foxglove bridge on it
 
 then open Foxglove application and open connection. if you run foxglove bridge on dev pc locally - use `ws://localhost:8765` by default. If you run foxglove bridge on raspberry pi or another device, that connected via ssh use: `ws://<DEVICE_IP_ADDRESS>:8765`
 
+![foxglove](../attachments/images/lesson02_foxglove.png)
 ### analyze and debug
     
 
