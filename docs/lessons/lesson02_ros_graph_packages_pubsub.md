@@ -7,7 +7,7 @@
 example:
     
     ros@rpi:/ros2-ws/src$ ros2 pkg create --build-type ament_cmake \
-        --license Apache-2.0 robot_monitor_cpp --dependencies sensor_msgs rclpy
+        --license Apache-2.0 robot_monitor_cpp --dependencies sensor_msgs rclcpp
 
 ### build
     ros@rpi:/ros2-ws/src$ cd .. # <=== buld from workspace, not from src!
@@ -19,7 +19,7 @@ example:
 example:
 
     colcon build --packages-select robot_monitor_cpp --symlink-install
-    source install/setup.build
+    source install/setup.bash
 
 ### run node manualy
     ros2 run <package_name> <executable>
