@@ -14,7 +14,7 @@ example:
     ros@rpi:/ros2-ws$ colcon build --packages-select <packages> --symlink-install
 
     #for each terminal
-    source install/setup.build
+    source install/setup.bash
 
 example:
 
