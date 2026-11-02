@@ -17,7 +17,7 @@ public:
         );
 
         subscription_ = this->create_subscription<std_msgs::msg::Float32>(
-            "/robot/diagnostics/cpu_temperature",
+            "/robot/diagnostics/cpu_temperature_float32",
             rclcpp::QoS(10),
             [this](std_msgs::msg::Float32::ConstSharedPtr msg)
             {

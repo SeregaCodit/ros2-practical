@@ -7,7 +7,7 @@ from sensor_msgs.msg import Temperature
 
 from ..core.interfaces.icpu_temperature_publisher import ICpuTemperaturePublisher
 
-TOPIC_NAME = "/robot/diagnostics/cpu_temperature"
+TOPIC_NAME = "/robot/diagnostics/cpu_temperature"  
 TERMAL_PATH = Path('/sys/class/thermal/thermal_zone0/temp')
 FRAME_ID = "base_link"
 
