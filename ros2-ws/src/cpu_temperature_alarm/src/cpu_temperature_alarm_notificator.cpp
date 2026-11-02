@@ -1,4 +1,5 @@
 #include <memory>
+#include <functional>
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/temperature.hpp"
@@ -27,15 +28,12 @@ private:
         auto current_temp = msg->temperature;
         const double safe_temperature_c = this->get_parameter("safe_temperature_c").as_double();
 
-        if (current_temp > safe_temperature_c)
-        {
-            if (in_range_) {in_range_ = !in_range_;}
+        if ((current_temp > safe_temperature_c) && in_range_){
+            in_range_ = !in_range_;
             RCLCPP_WARN(this->get_logger(), "TEMPERATURE IS TO HIGHT: %.1f", current_temp);
-        } else {
-            if (!in_range_){
-                in_range_ = !in_range_;
-                RCLCPP_INFO(this->get_logger(), "CPU TEMPERATURE IN SAFE RANGE");
-            }
+        } else if ((current_temp < safe_temperature_c) && !in_range_){
+            in_range_ = !in_range_;
+            RCLCPP_INFO(this->get_logger(), "CPU TEMPERATURE IN SAFE RANGE");
         };
     }
 
