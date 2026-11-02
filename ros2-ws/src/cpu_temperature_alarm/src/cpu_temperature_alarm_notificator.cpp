@@ -14,8 +14,6 @@ public:
     {
         this->declare_parameter("safe_temperature_c", 80.0);
 
-        safe_temperature_c_ = this->get_parameter("safe_temperature_c").as_double();
-
         subscription_ = this->create_subscription<sensor_msgs::msg::Temperature>(
             "/robot/diagnostics/cpu_temperature",
             rclcpp::QoS(10),
@@ -27,8 +25,9 @@ private:
     void callback(const sensor_msgs::msg::Temperature::SharedPtr msg)
     {
         auto current_temp = msg->temperature;
+        const double safe_temperature_c = this->get_parameter("safe_temperature_c").as_double();
 
-        if (current_temp > this->safe_temperature_c_)
+        if (current_temp > safe_temperature_c)
         {
             if (in_range_) {in_range_ = !in_range_;}
             RCLCPP_WARN(this->get_logger(), "TEMPERATURE IS TO HIGHT: %.1f", current_temp);
@@ -41,7 +40,6 @@ private:
     }
 
     rclcpp::Subscription<sensor_msgs::msg::Temperature>::SharedPtr subscription_;
-    float safe_temperature_c_;
     bool in_range_ = true;
 };
 
