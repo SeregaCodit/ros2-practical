@@ -4,7 +4,7 @@
   <name>robot_monitor_py</name>
   <version>0.0.0</version>
   <description>publush cpu temperature</description>
-  <maintainer email="ros@todo.todo">ros</maintainer>
+  <maintainer email="serega.codit@gmail.com">Serhii Naumenko</maintainer>
   <license>Apache-2.0</license>
 
   <depend>rclpy</depend>

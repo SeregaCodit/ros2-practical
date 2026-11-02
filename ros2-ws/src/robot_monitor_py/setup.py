@@ -16,7 +16,7 @@ setup(
     zip_safe=True,
     maintainer='ros',
     maintainer_email='ros@todo.todo',
-    description='TODO: Package description',
+    description='cpu temperature monitoring',
     license='Apache-2.0',
     extras_require={
         'test': [
