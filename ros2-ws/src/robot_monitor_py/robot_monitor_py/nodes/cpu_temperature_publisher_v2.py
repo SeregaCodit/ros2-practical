@@ -5,8 +5,6 @@ from rclpy.node import Node
 from rclpy.executors import ExternalShutdownException
 from sensor_msgs.msg import Temperature
 
-import time
-
 from ..core.interfaces.icpu_temperature_publisher import ICpuTemperaturePublisher
 
 TOPIC_NAME = "/robot/diagnostics/cpu_temperature"
