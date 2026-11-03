@@ -37,6 +37,8 @@ RUN apt-get update && apt-get install -y \
     gpiod \
     libgpiod-dev \
     python3-libgpiod \
+    python3-smbus2 \
+    python3-lgpio \
     # RQt tools may be commented out if using Foxglove Bridge instead. 
     ros-${ROS_DISTRO}-rqt \
     ros-${ROS_DISTRO}-rqt-graph \

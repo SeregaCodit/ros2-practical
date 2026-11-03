@@ -28,3 +28,4 @@ Practical robotics course project.
 
 ### notes from lessons 
 * [lesson02 - ros_graph packages pubsub foxglove_bridge](docs/lessons/lesson02_ros_graph_packages_pubsub.md)
+* [lesson03 - RPI pinout and voltage](docs/lessons/lesson03_rpi_pins.md)
