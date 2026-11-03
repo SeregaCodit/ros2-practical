@@ -78,3 +78,69 @@ my UPS hat connected at 0x42 i2c address:
 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 70: -- -- -- -- -- -- -- --                   
 </pre>
+
+we need to connect devices to container an get permission for ros user in container.
+
+install python packages for work with i2c
+
+Dockerfile:
+
+      RUN apt-get update && apt-get install -y \
+         ...
+         python3-smbus2 \
+         python3-lgpio \
+         ...
+
+compose.yml:
+   <pre>
+   services:
+      ros2:
+         build:
+   ...
+   devices:
+      - /dev/i2c-1:/dev/i2c-1
+      - /dev/gpiochip0:/dev/gpiochip0
+   group_add:
+      - "${I2C_GID:?I2C_GID is required}"
+      - "${GPIO_GID:?GPIO_GID is required}"
+   ...
+   </pre>
+
+check /dev/gpiochip0 GUID and /dev/i2c-1 GUID<br>
+bash:
+   <pre>
+   user@rpi:~$ stat -c '%a %U %G %g' /dev/gpiochip0
+      660 root dialout 20
+
+   user@rpi:~$ stat -c '%a %U %G %g' /dev/i2c-1    
+      660 root i2c 1002
+   </pre>
+
+add variables to env<br>
+.env
+   <pre>
+   USER_UID=1004
+   USER_GID=1004
+   GPIO_GID=20
+   I2C_GID=1002
+   </pre>
+
+rebuild container:
+
+      docker compose up -d --force-recreate
+
+now you can get access to gpio and i2c without using sudo command inside the container
+      <pre>
+      ros@rpi:/ros2-ws$ i2cdetect -y 1
+         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+      00:                         -- -- -- -- -- -- -- -- 
+      10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+      20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+      30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+      40: -- -- 42 -- -- -- -- -- -- -- -- -- -- -- -- -- 
+      50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+      60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+      70: -- -- -- -- -- -- -- --         
+      ros@rpi:/ros2-ws$ gpiodetect
+      gpiochip0 [pinctrl-bcm2711] (58 lines)
+      </pre>

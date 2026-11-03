@@ -23,7 +23,9 @@ services:
       - /dev/i2c-1:/dev/i2c-1
       - /dev/gpiochip0:/dev/gpiochip0
     group_add:
-      - "${GPIO_GID}"
+      - "${I2C_GID:?I2C_GID is required}"
+      - "${GPIO_GID:?GPIO_GID is required}"
+
     environment:
       ROS_DOMAIN_ID: "42"
       ROS_LOCALHOST_ONLY: "0"
