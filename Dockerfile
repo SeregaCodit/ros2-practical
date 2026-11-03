@@ -40,15 +40,15 @@ RUN apt-get update && apt-get install -y \
     python3-smbus2 \
     python3-lgpio \
     # RQt tools may be commented out if using Foxglove Bridge instead. 
-    ros-${ROS_DISTRO}-rqt \
-    ros-${ROS_DISTRO}-rqt-graph \
+    # ros-${ROS_DISTRO}-rqt \
+    # ros-${ROS_DISTRO}-rqt-graph \
     # Foxglove Bridge (instead of RQt) may be commented out if using RQt instead
-    ros-${ROS_DISTRO}-foxglove-bridge \
+    # ros-${ROS_DISTRO}-foxglove-bridge \ 
     # gazebo
-    ros-${ROS_DISTRO}-ros-gz \
+    # ros-${ROS_DISTRO}-ros-gz \
     # demo_nodes 
-    ros-${ROS_DISTRO}-demo-nodes-cpp \
-    ros-${ROS_DISTRO}-demo-nodes-py \
+    # ros-${ROS_DISTRO}-demo-nodes-cpp \
+    # ros-${ROS_DISTRO}-demo-nodes-py \
     # description tools
     ros-${ROS_DISTRO}-xacro \
     ros-${ROS_DISTRO}-joint-state-publisher-gui \
