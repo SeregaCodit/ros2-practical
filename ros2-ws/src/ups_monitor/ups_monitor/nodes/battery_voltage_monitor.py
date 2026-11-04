@@ -1,5 +1,6 @@
 import rclpy
 import time
+import math
 
 from rclpy.node import Node
 from rclpy.executors import ExternalShutdownException
@@ -38,16 +39,19 @@ class BatteryVoltageMonitor(Node):
 
 
     def callback(self, msg: BatteryState) -> None:
-        self._last_msg_time = time.monotonic()
-
-        if self._telemetry_timed_out:
-            self._telemetry_timed_out = False
-
-            self.get_logger().info(
-                "UPS battery telemetry restored"
-            )
-        
         voltage = msg.voltage
+
+        if math.isfinite(voltage) and voltage > 0.0:
+
+            self._last_msg_time = time.monotonic()
+
+            if self._telemetry_timed_out:
+                self._telemetry_timed_out = False
+
+                self.get_logger().info(
+                    "UPS battery telemetry restored"
+                )
+        
         status = self.__battery.voltage_status(voltage)
 
         log_text = f"Battery Voltage is {status.name}: {voltage:.2f} V"
@@ -74,7 +78,7 @@ class BatteryVoltageMonitor(Node):
 
             self.get_logger().warning(
                 "UPS battery telemetry timeout: "
-                f"no messages for {elapsed:.1f} s"
+                f"no valid voltage measurements for {elapsed:.1f} s"
             )
             
 
