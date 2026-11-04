@@ -165,3 +165,27 @@ Instead of spam messages into the teminal window, start conteiner on dev pc and 
 so i can watch logs in foxglove interface:
 
    ![foxglove](../attachments/images/lesson03_foxglove.png)
+
+
+check `ups_battery_voltage_monitor` via syntetic data publishing in `/robot/diagnostics/ups_battery_state` topic:
+
+<pre>
+ros@rpi:/ros2-ws$ ros2 topic pub --once /robot/diagnostics/ups_battery_state  sensor_msgs/msg/BatteryState "{voltage: 8.3}"
+
+>>> [INFO] [1793827560.303454236] [ups_battery_voltage_monitor]: Battery Voltage is NORMAL: 8.30 V
+
+ros@rpi:/ros2-ws$ ros2 topic pub --once /robot/diagnostics/ups_battery_state  sensor_msgs/msg/BatteryState "{voltage: 8.6}"
+
+>>> [WARN] [1793827567.850056469] [ups_battery_voltage_monitor]: Battery Voltage is HIGH: 8.60 V
+
+ros@rpi:/ros2-ws$ ros2 topic pub --once /robot/diagnostics/ups_battery_state  sensor_msgs/msg/BatteryState "{voltage: 4.6}"
+
+>>> [WARN] [1793827578.560076221] [ups_battery_voltage_monitor]: Battery Voltage is DEEP_DISCHARGE: 4.60 V
+
+ros@rpi:/ros2-ws$ ros2 topic pub --once /robot/diagnostics/ups_battery_state  sensor_msgs/msg/BatteryState "{voltage: 6}"
+
+>>> [WARN] [1793827606.806630392] [ups_battery_voltage_monitor]: Battery Voltage is LOW: 6.00 V
+
+ros@rpi:/ros2-ws$ ros2 topic pub --once /robot/diagnostics/ups_battery_state  sensor_msgs/msg/BatteryState "{voltage: 8.4}"
+
+>>> [INFO] [1793827630.539187092] [ups_battery_voltage_monitor]: Battery Voltage is NORMAL: 8.40 V
