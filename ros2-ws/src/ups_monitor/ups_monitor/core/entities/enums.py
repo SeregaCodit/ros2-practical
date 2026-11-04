@@ -3,5 +3,5 @@ import enum
 class BatteryChargeStatus(enum.Enum):
     NORMAL = 0
     LOW = 1
-    EXTERME_LOW = 3
+    DEEP_DISCHARGE = 3
     HIGH = 4

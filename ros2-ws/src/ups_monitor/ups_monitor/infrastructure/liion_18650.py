@@ -25,7 +25,7 @@ class LiIon18650(IBattery):
 
     def voltage_status(self, voltage: float) -> str:
         if voltage > self.max_voltage * self.cell_count:
-            return BatteryChargeStatus.OVERCHARGE
+            return BatteryChargeStatus.HIGH
         elif voltage > self.min_safe_voltage * self.cell_count:
             return BatteryChargeStatus.NORMAL
         elif voltage > self.deep_discharge_voltage * 2:

@@ -26,7 +26,7 @@ class BatteryVoltageMonitor(Node):
         voltage = msg.voltage
         status = self.__battery.voltage_status(voltage)
 
-        log_text = f"Battery Voltage is {status.name}: {voltage} V"
+        log_text = f"Battery Voltage is {status.name}: {voltage:.2f} V"
 
         if status.value != self.__prev_status_val:
             if status.value > 0:
