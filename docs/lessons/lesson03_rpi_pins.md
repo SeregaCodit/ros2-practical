@@ -144,3 +144,8 @@ now you can get access to gpio and i2c without using sudo command inside the con
       ros@rpi:/ros2-ws$ gpiodetect
       gpiochip0 [pinctrl-bcm2711] (58 lines)
       </pre>
+
+check the state of the GPIO17 pin. If it has no external connections, it repersents a logical 1. 
+
+      ros@rpi:/ros2-ws$ gpioget -c gpiochip0 --bias=pull-up 17
+      "17"=active
