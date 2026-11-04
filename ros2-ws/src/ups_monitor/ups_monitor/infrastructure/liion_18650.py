@@ -1,5 +1,8 @@
+import math
+
 from ..core.interfaces.ibattery import IBattery
 from ..core.entities.enums import BatteryChargeStatus
+
 
 from sensor_msgs.msg import BatteryState
 
@@ -24,11 +27,13 @@ class LiIon18650(IBattery):
         self._cell_count = cell_count
 
     def voltage_status(self, voltage: float) -> str:
-        if voltage > self.max_voltage * self.cell_count:
+        if not math.isfinite(voltage):
+            return BatteryChargeStatus.UNKNOWN
+        elif voltage > self.max_voltage * self.cell_count:
             return BatteryChargeStatus.HIGH
         elif voltage > self.min_safe_voltage * self.cell_count:
             return BatteryChargeStatus.NORMAL
-        elif voltage > self.deep_discharge_voltage * 2:
+        elif voltage > self.deep_discharge_voltage * self.cell_count:
             return BatteryChargeStatus.LOW
         return BatteryChargeStatus.DEEP_DISCHARGE
 

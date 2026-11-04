@@ -5,3 +5,4 @@ class BatteryChargeStatus(enum.Enum):
     LOW = 1
     DEEP_DISCHARGE = 3
     HIGH = 4
+    UNKNOWN = 5

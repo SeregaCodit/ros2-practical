@@ -1,4 +1,5 @@
 import rclpy
+import time
 
 from rclpy.node import Node
 from rclpy.executors import ExternalShutdownException
@@ -15,14 +16,37 @@ class BatteryVoltageMonitor(Node):
     def __init__(self, battery: IBattery):
         super().__init__("ups_battery_voltage_monitor")
 
+        self.declare_parameter("msg_timeout_sec", 3.0)
+        self.declare_parameter("watchdog_period_sec", 0.5)
+
         self.__battery = battery
         self.__prev_status_val: int = -1
+        
+        # Watchdog state
+        self._last_msg_time = time.monotonic()
+        self._telemetry_timed_out = False
+        self._msg_timeout_sec = self.get_parameter("msg_timeout_sec").value
 
         self.suscription = self.create_subscription(BatteryState, TOPIC_NAME, self.callback, 10)
+
+        self._watchdog_timer = self.create_timer(
+            self.get_parameter("watchdog_period_sec").value,
+            self.__check_telemetry,
+        )
+
         self.get_logger().info("INITIALIZED")
 
 
     def callback(self, msg: BatteryState) -> None:
+        self._last_msg_time = time.monotonic()
+
+        if self._telemetry_timed_out:
+            self._telemetry_timed_out = False
+
+            self.get_logger().info(
+                "UPS battery telemetry restored"
+            )
+        
         voltage = msg.voltage
         status = self.__battery.voltage_status(voltage)
 
@@ -35,6 +59,24 @@ class BatteryVoltageMonitor(Node):
                 self.get_logger().info(log_text)
 
             self.__prev_status_val = status.value
+
+
+    def __check_telemetry(self) -> None:
+        elapsed = (time.monotonic() - self._last_msg_time)
+
+        if (elapsed >= self._msg_timeout_sec
+            and not self._telemetry_timed_out):
+
+            self._telemetry_timed_out = True
+
+            # Force re-evaluation after recovery
+            self.__prev_status_val = -1
+
+            self.get_logger().warning(
+                "UPS battery telemetry timeout: "
+                f"no messages for {elapsed:.1f} s"
+            )
+            
 
 
 def main(args=None):
