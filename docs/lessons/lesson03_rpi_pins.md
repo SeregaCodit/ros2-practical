@@ -163,3 +163,5 @@ Instead of spam messages into the teminal window, start conteiner on dev pc and 
       [INFO] [1793790203.355981390] [foxglove_bridge]: Starting foxglove_bridge (lyrical, 3.6.0@)
 
 so i can watch logs in foxglove interface:
+
+   ![foxglove](../attachments/images/lesson03_foxglove.png)

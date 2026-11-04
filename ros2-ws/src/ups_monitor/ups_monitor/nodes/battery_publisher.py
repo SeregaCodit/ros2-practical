@@ -57,6 +57,7 @@ class BatteryStatePublisher(Node):
 
         self.get_logger().debug(str(msg))
 
+
 def main(args=None):
     from smbus2 import SMBus
 
