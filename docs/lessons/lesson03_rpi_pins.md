@@ -1,3 +1,5 @@
+# lesson materials
+
 to check your RPI pinout use
 
     user@rpi:~/ros2-practical$ pinout
@@ -149,3 +151,15 @@ check the state of the GPIO17 pin. If it has no external connections, it reperse
 
       ros@rpi:/ros2-ws$ gpioget -c gpiochip0 --bias=pull-up 17
       "17"=active
+
+# homework notes
+Instead of spam messages into the teminal window, start conteiner on dev pc and run foxflove bridge.
+
+      dev@dev-pc:/mnt/samsung_ssd/rosProjects/ros2-practical$ docker compose up -d
+      [+] Running 1/1
+      ✔ Container ros2_practical_dev_container  Started                         0.1s 
+      pivden@dev-pc:/mnt/samsung_ssd/rosProjects/ros2-practical$ docker compose exec ros2 bash
+      ros@dev-pc:/ros2-ws$ ros2 run foxglove_bridge foxglove_bridge 
+      [INFO] [1793790203.355981390] [foxglove_bridge]: Starting foxglove_bridge (lyrical, 3.6.0@)
+
+so i can watch logs in foxglove interface:

@@ -25,6 +25,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            "ups_battery_state_publisher = ups_monitor.nodes.battery_publisher:main"
         ],
     },
 )
