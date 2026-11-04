@@ -167,7 +167,7 @@ so i can watch logs in foxglove interface:
    ![foxglove](../attachments/images/lesson03_foxglove.png)
 
 
-check `ups_battery_voltage_monitor` via syntetic data publishing in `/robot/diagnostics/ups_battery_state` topic:
+### check `ups_battery_voltage_monitor` via syntetic data publishing in `/robot/diagnostics/ups_battery_state` topic:
 
 <pre>
 ros@rpi:/ros2-ws$ ros2 topic pub --once /robot/diagnostics/ups_battery_state  sensor_msgs/msg/BatteryState "{voltage: 8.3}"
@@ -189,3 +189,52 @@ ros@rpi:/ros2-ws$ ros2 topic pub --once /robot/diagnostics/ups_battery_state  se
 ros@rpi:/ros2-ws$ ros2 topic pub --once /robot/diagnostics/ups_battery_state  sensor_msgs/msg/BatteryState "{voltage: 8.4}"
 
 >>> [INFO] [1793827630.539187092] [ups_battery_voltage_monitor]: Battery Voltage is NORMAL: 8.40 V
+</pre>
+
+### let's run on real data:<br>
+terminal 1:
+<pre>
+ros@rpi:/ros2-ws$ ros2 run ups_monitor battery_voltage_monitor
+[INFO] [1793834071.306052393] [ups_battery_voltage_monitor]: INITIALIZED
+[WARN] [1793834074.222874473] [ups_battery_voltage_monitor]: UPS battery telemetry timeout: no valid voltage measurements for 3.2 s
+</pre>
+terminal 2:
+
+      ros@rpi:/ros2-ws$ ros2 run ups_monitor ups_battery_state_publisher
+      [INFO] [1793834133.837149380] [ups_battery_state_publisher]: INITIALIZED
+
+that time in **terminal 1** we can see new log:
+<pre>
+[INFO] [1793834134.760782301] [ups_battery_voltage_monitor]: UPS battery telemetry restored
+[INFO] [1793834134.764607259] [ups_battery_voltage_monitor]: Battery Voltage is NORMAL: 8.03 V
+</pre>
+
+terminal 3:
+<pre>
+ros@rpi:/ros2-ws$ ros2 topic echo /robot/diagnostics/ups_battery_state
+header:
+  stamp:
+    sec: 1793833908
+    nanosec: 919085712
+  frame_id: base_link
+voltage: 8.031999588012695
+temperature: .nan
+current: 0.0003000000142492354
+charge: .nan
+capacity: .nan
+design_capacity: .nan
+percentage: .nan
+power_supply_status: 3
+power_supply_health: 0
+power_supply_technology: 2
+present: true
+cell_voltage:
+- .nan
+- .nan
+cell_temperature:
+- .nan
+- .nan
+location: UPS HAT(B)
+serial_number: ''
+---
+</pre>
