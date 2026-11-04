@@ -31,31 +31,27 @@ class BatteryStatePublisher(Node):
             msg.header.stamp = self.get_clock().now().to_msg()
             msg.voltage = self._battery_reader.voltage()
             msg.current = self._battery_reader.current()
+            msg.header.frame_id = FRAME_ID
+            msg.temperature = self._battery_reader.temperature()
+            msg.charge = self._battery_reader.charge()
+            msg.temperature = self._battery_reader.temperature()
+            msg.capacity = self._battery_reader.capacity()
+            msg.design_capacity = self._battery_reader.design_capacity()
+            msg.percentage = self._battery_reader.percentage()
+            msg.power_supply_status = self._battery_reader.power_supply_status()
+            msg.power_supply_health = self._battery_reader.power_supply_health()
+            msg.power_supply_technology = self._battery_reader.power_supply_technology()
+            msg.present = self._battery_reader.present()
+            msg.cell_voltage = self._battery_reader.cell_voltage()
+            msg.cell_temperature = self._battery_reader.cell_temperature()
+            msg.location = self._battery_reader.location()
+            msg.serial_number = self._battery_reader.serial_number()
+
+            self._publisher.publish(msg)
+            
+            self.get_logger().debug(str(msg))
         except OSError as ex:
-            err_msg = f"Failed to read UPS battery data: {ex}"
-            self.get_logger().error(err_msg)
-            raise OSError(err_msg)
-
-
-        msg.header.frame_id = FRAME_ID
-        msg.temperature = self._battery_reader.temperature()
-        msg.charge = self._battery_reader.charge()
-        msg.temperature = self._battery_reader.temperature()
-        msg.capacity = self._battery_reader.capacity()
-        msg.design_capacity = self._battery_reader.design_capacity()
-        msg.percentage = self._battery_reader.percentage()
-        msg.power_supply_status = self._battery_reader.power_supply_status()
-        msg.power_supply_health = self._battery_reader.power_supply_health()
-        msg.power_supply_technology = self._battery_reader.power_supply_technology()
-        msg.present = self._battery_reader.present()
-        msg.cell_voltage = self._battery_reader.cell_voltage()
-        msg.cell_temperature = self._battery_reader.cell_temperature()
-        msg.location = self._battery_reader.location()
-        msg.serial_number = self._battery_reader.serial_number()
-
-        self._publisher.publish(msg)
-
-        self.get_logger().debug(str(msg))
+            self.get_logger().error(f"Failed to read UPS battery data: {ex}")
 
 
 def main(args=None):
