@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y \
     python3-opencv \
     gpiod \
     libgpiod-dev \
+    pkg-config \
     python3-libgpiod \
     python3-smbus2 \
     python3-lgpio \
