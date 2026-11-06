@@ -10,6 +10,23 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 
+# External dependencies
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GPIOD_CXX REQUIRED IMPORTED_TARGET libgpiodcxx)
+
+add_executable(led_node src/led_node.cpp)
+
+# Link dependencies
+target_link_libraries(led_node PRIVATE
+  rclcpp::rclcpp
+  std_msgs::std_msgs
+  PkgConfig::GPIOD_CXX
+)
+
+install(TARGETS led_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
