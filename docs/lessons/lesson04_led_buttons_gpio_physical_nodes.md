@@ -25,3 +25,33 @@ make shure `GPIO17` and `GPIO27` are not used by other components or nodes:
     "17"=active
     ros@rpi:/ros2-ws$ gpioget -c gpiochip0 --bias=pull-up 27
     "27"=active
+
+
+start `gpio_driver` `led_node` and check manually:
+
+<pre>
+ros@rpi:/ros2-ws$ ros2 topic list
+/hardware/led/set
+/parameter_events
+/rosout
+
+ros@rpi:/ros2-ws$ ros2 topic list -t
+/hardware/led/set [std_msgs/msg/Bool]
+/parameter_events [rcl_interfaces/msg/ParameterEvent]
+/rosout [rcl_interfaces/msg/Log]
+
+ros@rpi:/ros2-ws$ ros2 interface show std_msgs/msg/Bool
+# This was originally provided as an example message.
+# It is deprecated as of Foxy
+# It is recommended to create your own semantically meaningful message.
+# However if you would like to continue using this please use the equivalent in example_msgs.
+
+bool data
+
+ros@rpi:/ros2-ws$ ros2 topic pub --once  /hardware/led/set std_msgs/msg/Bool "{data: true}"
+publisher: beginning loop
+publishing #1: std_msgs.msg.Bool(data=True)  # led lit up
+
+ros@rpi:/ros2-ws$ ros2 topic pub --once  /hardware/led/set std_msgs/msg/Bool "{data: false}"
+publisher: beginning loop
+publishing #1: std_msgs.msg.Bool(data=False)  # led went out
