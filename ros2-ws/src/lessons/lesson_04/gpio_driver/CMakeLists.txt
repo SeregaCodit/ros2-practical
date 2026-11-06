@@ -14,6 +14,7 @@ find_package(std_msgs REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GPIOD_CXX REQUIRED IMPORTED_TARGET libgpiodcxx)
 
+# ====== led_node ======
 add_executable(led_node src/led_node.cpp)
 
 # Link dependencies
@@ -23,7 +24,23 @@ target_link_libraries(led_node PRIVATE
   PkgConfig::GPIOD_CXX
 )
 
-install(TARGETS led_node
+# ====== button_node ======
+add_executable(button_node src/button_node.cpp)
+target_link_libraries(button_node PRIVATE
+  rclcpp::rclcpp
+  std_msgs::std_msgs
+  PkgConfig::GPIOD_CXX
+)
+
+target_include_directories(button_node
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+install(
+  TARGETS
+   led_node
+   button_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

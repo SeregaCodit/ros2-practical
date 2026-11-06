@@ -27,7 +27,7 @@ make shure `GPIO17` and `GPIO27` are not used by other components or nodes:
     "27"=active
 
 
-start `gpio_driver` `led_node` and check manually:
+start [`gpio_driver` `led_node`](../../ros2-ws/src/lessons/lesson_04/gpio_driver/src/led_node.cpp) and check manually:
 
 <pre>
 ros@rpi:/ros2-ws$ ros2 topic list
@@ -55,3 +55,18 @@ publishing #1: std_msgs.msg.Bool(data=True)  # led lit up
 ros@rpi:/ros2-ws$ ros2 topic pub --once  /hardware/led/set std_msgs/msg/Bool "{data: false}"
 publisher: beginning loop
 publishing #1: std_msgs.msg.Bool(data=False)  # led went out
+</pre>
+
+start [`button_node`](../../ros2-ws/src/lessons/lesson_04/gpio_driver/src/button_node.cpp) and pres the button few times:
+
+    ros@rpi:/ros2-ws$ ros2 run gpio_driver button_node
+    [INFO] [1794000869.660411012] [button_node]: Button GPIO ready at line GPIO17
+    [INFO] [1794000874.845587522] [button_node]: button state chenged to pressed
+    [INFO] [1794000875.725553006] [button_node]: button state chenged to released
+
+checkout Foxglove:
+
+[lesson04_foxglove_led_and_button_nodes](lesson04_led_buttons_gpio_physical_nodes.md) ![text](../attachments/images/lesson04_foxglove_led_and_button_nodes.png)
+
+
+We can see both nodes with their topics, but they don't interract in any way.
