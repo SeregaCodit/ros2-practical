@@ -110,9 +110,13 @@ add **failsafe**: if signal lost - set led line to `INACTIVE` value:
 
 
 ### bug :(
-if the **button node** stops working while the **LED is turn on** - the **toggle node** will continue sending the `true` signal to the **led dode** so the LED will stay turning in and we can not turn off it via button pressing. Also after `led_node` stopping the led will went out but after relaunching - `led_node` - it will lit on again - because the `toggle led node` is still sending old state  of dumped `button_node`. And finnaly after relaunching of `toggle led node` our system will be working good. Also shutting down of the `led_node` set line controlled by it to `INACTIVE` - it implemented in LedNode destructor, but this bechavior is just software pacifier and it not peovides 100 waranty of setting up line to INACTIVE valuse. **Solution**: we must implement `watchdog timer` in all nodes that subscrivbed on command topics. It brings us to the point of what is more convenient to implement two things:
+if the **button node** stops working while the **LED is turn on** - the **toggle node** will continue sending the `true` signal to the **led dode** so the LED will stay turning in and we can not turn off it via button pressing. Also after `led_node` stopping the led will went out but after relaunching - `led_node` - it will lit on again - because the `toggle led node` is still sending old state  of dumped `button_node`. And finnaly after relaunching of `toggle led node` our system will be working good. Also shutting down of the `led_node` set line controlled by it to `INACTIVE` - it implemented in LedNode destructor, but this bechavior is just software pacifier and it not peovides 100 waranty of setting up line to INACTIVE valuse. 
+
+**Cmmon Solution**: we must implement `watchdog timer` in all nodes that subscrivbed on command topics. It brings us to the point of what is more convenient to implement two things:
 
 1. change `std_msg/msg/Bool` to custom interface with `timestamp` and `data` fields. May be also some another filelds like DTO objects has.
 2. It willl be usefull to have some `WathcdogTimer` class, that getting safe interval, and reporting if we need apply failsafe actions.
 
 So ideally we need to hawe hardware pacifiers if we working with real staff.
+
+Solved: add `watchdog` to publisher timer. If the last msg time is greater than the timeout,  we reset states to `false` and send this value to subscribers until the topic publisher restored. When all components and nodes are functioning normlly - the LED will remain off until the button is pressed, as safety conditions.

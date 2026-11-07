@@ -5,9 +5,9 @@
 #include <string>
 #include <iostream>
 
-using namespace std::placeholders;
 using namespace std::chrono_literals;
 
+using Clock = std::chrono::steady_clock;
 
 class LedToggle final : public rclcpp::Node
 {
@@ -15,6 +15,17 @@ public:
     LedToggle()
     : Node("led_toggle_node")
     {
+
+        // set up failsafe signal timeout
+        const auto timeout_ms = declare_parameter<int64_t>("timeout_ms", 2000);
+
+        if (timeout_ms <= 0){
+            throw std::invalid_argument("failsage tiomout must be greater than 0");
+        };
+
+        timeout_ = std::chrono::milliseconds{timeout_ms};
+
+
         subscription_ = create_subscription<std_msgs::msg::Bool>(
             "button_state", // remap to target topic
             rclcpp::QoS(10),
@@ -24,8 +35,9 @@ public:
                 // swich on button realise
                 // to swintch on button push invert condition
                 // react only in front of signal
-
+                updated_at_ = Clock::now();
                 if (!msg->data && prev_state_){
+                    
                     current_state_ = !current_state_;
 
                     RCLCPP_INFO(get_logger(), "switch LED %s -> %s",
@@ -46,7 +58,29 @@ public:
         publish_timer_ = create_wall_timer(
             100ms,
             [this](){
+                auto now = Clock::now();
+                auto elapsed = now - updated_at_;
+                
                 std_msgs::msg::Bool msg;
+
+                if (elapsed >= timeout_){
+                    // check msg freshness 
+                    if (!failsafe_){
+                        const int ellapsed = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() / 1000;
+                        RCLCPP_WARN(get_logger(), "FAILSAFE: no commanf for %d seconds\nsending safe false commnd", ellapsed);
+                        failsafe_ = true;
+                        current_state_ = false; 
+                        prev_state_ = false;
+                    }
+
+                    // msg.data = false;
+                } else {
+                    // msg.data = current_state_;
+                    if (failsafe_){
+                        RCLCPP_INFO(get_logger(), "signal restored");
+                        failsafe_ = false;
+                    };
+                }
                 msg.data = current_state_;
                 publisher_->publish(msg);
             }
@@ -56,8 +90,6 @@ public:
     }
 
 private:
-
-
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr subscription_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr publisher_;
     
@@ -65,6 +97,10 @@ private:
 
     bool prev_state_{false};
     bool current_state_{false};
+    
+    Clock::time_point updated_at_{Clock::now()};
+    std::chrono::milliseconds timeout_;
+    bool failsafe_ = false;
 
 };
 
