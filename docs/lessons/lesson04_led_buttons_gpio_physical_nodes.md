@@ -80,3 +80,30 @@ and check `Foxglove Topic Graph` or `RQt graph` if you use it.
 
 Now led_node subscribed on `hardware/button/pressed` topic, instead of her default `/hardware/led/set` topic. And the LED is lit up while the button is pressed and went out when button is realesed.
 
+Create [`led_toggle_node`](../../ros2-ws/src/lessons/lesson_04/gpio_control/src/led_toggle_node.cpp). We add relative topics names as topics for publisher and subscriber. It allow us to simple reuse toggle node via **remapping** names using `--ros-args -r <old_name>:=<new_name>` command:
+
+    ros@rpi:/ros2-ws$ ros2 run gpio_control led_toggle --ros-args \
+    -r button_state:=/hardware/button/pressed \ 
+    -r set_led:=/hardware/led/set
+    [INFO] [1794053337.442173181] [led_toggle_node]: initialized
+    [INFO] [1794053357.676337663] [led_toggle_node]: switch LED off -> on # LED lit up on realise
+    [INFO] [1794053359.475968185] [led_toggle_node]: switch LED on -> off # LED went out on realise
+
+
+Topic Graph:
+
+![lesson04_foxglove_led_toggle_node](../attachments/images/lesson04_foxglove_led_toggle_node.png)
+
+
+add **failsafe**: if signal lost - set led line to `INACTIVE` value:
+
+    terminal 1:
+    ros@rpi:/ros2-ws$ ros2 topic pub -r 0.2 /hardware/led/set std_msgs/msg/Bool "{data: true}"
+    
+    terminal with running led_node log:
+    [INFO] [1794058506.225127946] [led_node]: signal restored<br>
+    [WARN] [1794058508.301870870] [led_node]: FAILSAFE: no commanf for 2 seconds<br>
+    line GPIO27 switched to INACTIVE<br>
+    [INFO] [1794058511.227926171] [led_node]: signal restored
+    [WARN] [1794058513.301894952] [led_node]: FAILSAFE: no commanf for 2 seconds
+    line GPIO27 switched to INACTIVE
