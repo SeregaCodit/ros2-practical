@@ -31,7 +31,10 @@ public:
         );
 
         subscription_ = create_subscription<std_msgs::msg::Bool>(
-            "/hardware/led/set",
+            // best practice - is giving relative names. 
+            //It allows to use remapping in launch files and simple reusing node
+            "/hardware/led/set", 
+            
             rclcpp::QoS(10),
             [this](std_msgs::msg::Bool::SharedPtr msg){
                 request_ -> set_value(

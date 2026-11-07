@@ -8,7 +8,7 @@
 |gpiodetect|find available GPIO-controllers| gpiodetect|
 |gpioinfo| view GPIO configuration and usage| gpioinfo -c gpiochip0 # for all chip<br>  gpioinfo -c gpiochip0 17 # for GPIO17 pin |
 |gpoiget| read GPIO value| gpioget -c gpiochip0 -b pull-up --numeric 27 | 
-|gpioset|set GPIO value| gpioset -c gpiochip0 17=1 # on<br> gpioset -c gpiochip0 17=0 # off<br>gpioset -c gpiochip0 -t 500ms 17=1 # change state eveery 500 ms (Led blinking as result)
+|gpioset|set GPIO value| gpioset -c gpiochip0 27=1 # on<br> gpioset -c gpiochip0 27=0 # off<br>gpioset -c gpiochip0 -t 500ms 27=1 # change state eveery 500 ms (Led blinking as result)
 |gpiomon|monitor signal changes (edge events)| gpiomon -c gpiochip0 -b pull-up -e both 27<br> gpiomon -c gpiochip0 -b pull-up -e both -p 30ms 27
 |gpionotify|monitor GPIO configuration settings|
 ___
@@ -69,4 +69,14 @@ checkout Foxglove:
 [lesson04_foxglove_led_and_button_nodes](lesson04_led_buttons_gpio_physical_nodes.md) ![text](../attachments/images/lesson04_foxglove_led_and_button_nodes.png)
 
 
-We can see both nodes with their topics, but they don't interract in any way.
+We can see both nodes with their topics, but they don't interract in any way. Apply **remapping**:
+
+    ros@rpi:/ros2-ws$ ros2 run gpio_driver led_node --ros-args -r /hardware/led/set:=/hardware/button/pressed
+    [INFO] [1794041742.920347261] [led_node]: LED GPIO READY at line GPIO27
+
+and check `Foxglove Topic Graph` or `RQt graph` if you use it.
+
+![lesson04_foxglove_topic-graph_remapping](../attachments/images/lesson04_foxglove_topic-graph_remapping.png)
+
+Now led_node subscribed on `hardware/button/pressed` topic, instead of her default `/hardware/led/set` topic. And the LED is lit up while the button is pressed and went out when button is realesed.
+
