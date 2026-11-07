@@ -6,6 +6,7 @@
 #include <iostream>
 
 using namespace std::placeholders;
+using namespace std::chrono_literals;
 
 
 class LedToggle final : public rclcpp::Node
@@ -37,6 +38,20 @@ public:
             }
         );
 
+        publisher_ = create_publisher<std_msgs::msg::Bool>(
+            "set_led", // remap to target topic
+            rclcpp::QoS(10) 
+        );
+
+        publish_timer_ = create_wall_timer(
+            100ms,
+            [this](){
+                std_msgs::msg::Bool msg;
+                msg.data = current_state_;
+                publisher_->publish(msg);
+            }
+        );
+
         RCLCPP_INFO(get_logger(), "initialized");
     }
 
@@ -45,6 +60,9 @@ private:
 
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr subscription_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr publisher_;
+    
+    rclcpp::TimerBase::SharedPtr publish_timer_;
+
     bool prev_state_{false};
     bool current_state_{false};
 
