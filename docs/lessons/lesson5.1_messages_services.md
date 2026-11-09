@@ -100,3 +100,7 @@ safety_interfaces/ArmState state
 	uint8 state
 	uint32 revision
 </pre>
+
+
+
+### ! Breaking Change - created [course_utils](../../ros2-ws/src/course_utils) package and [debouncer.hpp](../../ros2-ws/src/course_utils/include/course_utils/debouncer.hpp) file from [lesson04/gpio_driver](../../ros2-ws/src/lessons/lesson_04/gpio_driver) package moved there. 
