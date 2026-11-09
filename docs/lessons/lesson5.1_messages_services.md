@@ -24,3 +24,6 @@ check **green LED** at `GPIO22`:
     ^C
     ros@rpi:/ros2-ws$ gpioset -c gpiochip0 22=0  # went out
     ^C
+
+**Bradboard connection is correct. All components are working as expected.**
+
