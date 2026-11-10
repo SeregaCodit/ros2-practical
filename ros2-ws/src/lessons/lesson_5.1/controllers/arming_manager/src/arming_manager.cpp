@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <cstdint>
 #include <cmath>
+#include <functional>
 
 #include "safety_interfaces/msg/arm_state.hpp"
 #include "safety_interfaces/msg/arm_decision.hpp"
@@ -39,15 +40,16 @@ public:
         current_arm_state_.revision = 0;
 
         // sensors heartbeat
-        auto timeout = declare_parameter<int64_t>("heartbeat_timeout_ms", 500);
+        auto timeout = declare_parameter<int64_t>("heartbeat_timeout_ms",
+             params::MIN_HEARTBEAT_TIMEOUT);
 
-        if (timeout < params::MIN_HEARTBEAT_TIMEOUT){
-            RCLCPP_WARN(get_logger(),
-                "heartbeat_timeout_ms must be >= %d ms\nfallback to %d ms",
-                params::MIN_HEARTBEAT_TIMEOUT);
-            
-            timeout = params::MIN_HEARTBEAT_TIMEOUT;
-        };
+        validate_with_fallback<int64_t>(
+            "heartbeat_timeout_ms",
+            timeout,
+            static_cast<int64_t>(params::MIN_HEARTBEAT_TIMEOUT),
+            static_cast<int64_t>(params::MIN_HEARTBEAT_TIMEOUT),
+            std::greater_equal<int64_t>{}
+        );
 
         heartbeat_timeout_ = Duration{timeout};
 
@@ -86,11 +88,34 @@ public:
                     handle_arm_request(request, response);
                 }
         );
-
-        
     };
 
+
 private:
+    template<typename T, typename Predicate>
+    void validate_with_fallback(
+        const std::string &value_name,
+        T &value,
+        const T &threshold,  
+        const T &fallback,
+        Predicate pred)
+    {
+
+        if (pred(value, threshold)){
+            RCLCPP_INFO_STREAM(
+                get_logger(),
+                "Set " << value_name << "to" << value
+            );
+            return;
+        }
+        
+        RCLCPP_WARN_STREAM(
+            get_logger(), 
+            "Invalid value for " << value_name << ": got" << value <<
+            ". Fallback to " << fallback);
+
+        value = fallback;
+    }
 
     bool check_time_freshness(const std_msgs::msg::Header &header){
         // check if msg time is fresh

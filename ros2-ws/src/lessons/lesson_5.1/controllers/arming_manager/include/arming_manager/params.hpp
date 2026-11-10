@@ -7,5 +7,5 @@ namespace params {
     inline constexpr float MIN_ARM_VOLTAGE = 7.2;
 }
 
-
 #endif
+
