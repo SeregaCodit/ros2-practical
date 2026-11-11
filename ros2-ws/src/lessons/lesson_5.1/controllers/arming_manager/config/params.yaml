@@ -1,0 +1,4 @@
+arming_manager:
+  ros__parameters:
+    min_arm_voltage_v: 7.2
+    min_obstacle_dist_m: 0.4
