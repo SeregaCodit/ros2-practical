@@ -104,3 +104,121 @@ safety_interfaces/ArmState state
 
 
 ### ! Breaking Change - created [course_utils](../../ros2-ws/src/course_utils) package and [debouncer.hpp](../../ros2-ws/src/course_utils/include/course_utils/debouncer.hpp) file from [lesson04/gpio_driver](../../ros2-ws/src/lessons/lesson_04/gpio_driver) package moved there. 
+
+
+### **! NOTE**: 
+in this lesson we are not implement any parameter validation logic. We can make custom function and throw it to `add_pre_set_parameters_callback` for fallback, to `add_on_set_parameters_callback` for accepting or rejecting as callback but this is not a lesson topic at all. We loockup the  `generate_parameter_library` tool at next lessons.
+
+# [arm_disarm_manager](../../ros2-ws/src/lessons/lesson_5.1/controllers/arming_manager/src/arm_disarm_manager.cpp)
+build and install package. Check node with exisiting [battery state publisher](../../ros2-ws/src/lessons/lesson_03/ups_monitor/ups_monitor/nodes/battery_publisher.py) and with syntetic msg that imitates a range sensor: 
+
+**terminal 1:**
+
+	ros@rpi:/ros2-ws$ ros2 run ups_monitor ups_battery_state_publisher 
+	[INFO] [1794407810.150311179] [ups_battery_state_publisher]: INITIALIZED
+
+**terminal 2:**
+<pre>	
+ros@rpi:/ros2-ws$ ros2 topic pub -r 5 \ 
+	/range_data \ 
+	sensor_msgs/msg/Range \
+	"{header: auto, radiation_type: 1, field_of_view: 0.44, min_range: 0.03, max_range: 2.0, range: 0.5}"
+
+publisher: beginning loop
+publishing #1: sensor_msgs.msg.Range(header=std_msgs.msg.Header(stamp=builtin_interfaces.msg.Time(sec=1794407853, nanosec=143532804), frame_id=''), radiation_type=1, field_of_view=0.44, min_range=0.03, max_range=2.0, range=0.5, variance=0.0)
+
+publishing #2: sensor_msgs.msg.Range(header=std_msgs.msg.Header(stamp=builtin_interfaces.msg.Time(sec=1794407853, nanosec=347173852), frame_id=''), radiation_type=1, field_of_view=0.44, min_range=0.03, max_range=2.0, range=0.5, variance=0.0)
+</pre>
+
+**terminal 3:**
+
+<pre>
+ros@rpi:/ros2-ws$ ros2 run arming_manager arm_disarm_manager \
+	--ros-args -r /range_sensor_topic:=/range_data \
+	-r /battery_state_topic:=/robot/diagnostics/ups_battery_state
+[INFO] [1794408043.701906219] [arm_disarm_manager]: INITIALIZED
+</pre>
+
+in foxglove:
+![1_foxglove_arm_disarm_manager](../attachments/images/lesson5.1_foxglove_arm_disarm_manager.png)
+
+**telminal 4:** 
+
+send arming request
+<pre>
+ros@rpi:/ros2-ws$ ros2 service call arm_manager safety_interfaces/srv/SetArm "{command: 1}"
+requester: making request: safety_interfaces.srv.SetArm_Request(command=1)
+
+response:
+safety_interfaces.srv.SetArm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=False, reason=2, detail='battery state is unsafe'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794408043, nanosec=679907282), state=0, revision=0))
+</pre>
+
+we got `accepted=False` with `reason=2`, `detail='battery state is unsafe'`
+and from `arm_disarm_manager`:
+
+	[ERROR] [1794408163.563533316] [arm_disarm_manager]: Sensor timestamp invalid: age=0.505 s, timeout=0.100 s
+	[ERROR] [1794408163.563923144] [arm_disarm_manager]: battery state msg is too old
+
+the reason is:
+<pre>
+class BatteryStatePublisher(Node):
+    def __init__(self, battery_reader: IBatteryStatus) -> None:
+        super().__init__("ups_battery_state_publisher")
+
+        self._battery_reader = battery_reader
+
+        self._publisher = self.create_publisher(BatteryState, TOPIC_NAME, 10)
+        self._timer = self.create_timer(1.0, self.callback)  
+        self.get_logger().info("INITIALIZED")
+</pre>
+
+**publishing is each one second but we thing that the state msg is too old if its age > 0.100 seconds**
+also we dont create declared parameter in battery state publisher, so we can's change publishing frquency here. But we implemented parameter declaration in arm_disarm_manager, so change it:
+
+	ros@rpi:/ros2-ws$ ros2 param set arm_disarm_manager heartbeat_timeout_ms 1500
+	Set parameter successful
+
+and try again:
+
+	ros@rpi:/ros2-ws$ ros2 service call arm_manager safety_interfaces/srv/SetArm "{command: 1}"
+	requester: making request: safety_interfaces.srv.SetArm_Request(command=1)
+
+	response:
+	safety_interfaces.srv.SetArm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=False, reason=5, detail='unconsistent range data'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794408043, nanosec=679907282), state=0, revision=0))
+
+got new negative decision and from `arm_disarm_manager`:
+
+	[INFO] [1794408746.699644097] [arm_disarm_manager]: [OK] - msg age check
+	[INFO] [1794408746.699828299] [arm_disarm_manager]: [OK] - battery check
+	[ERROR] [1794408746.699905632] [arm_disarm_manager]: Sensor timestamp invalid: age=1794408746.700 s, timeout=1.500 s
+	[ERROR] [1794408746.700072539] [arm_disarm_manager]: range sensor msg is too old
+
+the reason is our syntethic data of `Range sensor` has stamp with no setted up time. Change it:
+
+	ros@rpi:/ros2-ws$ ros2 topic pub -r 5 /range_data sensor_msgs/msg/Range   "{header: auto, radiation_type: 1, field_of_view: 0.44, min_range: 0.03, max_range: 2.0, range: 0.5}"
+	publisher: beginning loop
+	publishing #1: sensor_msgs.msg.Range(header=std_msgs.msg.Header(stamp=builtin_interfaces.msg.Time(sec=1794408955, nanosec=518027334), frame_id=''), radiation_type=1, field_of_view=0.44, min_range=0.03, max_range=2.0, range=0.5, variance=0.0)
+
+try set ARM again:
+	ros@rpi:/ros2-ws$ ros2 service call arm_manager safety_interfaces/srv/SetArm "{command: 1}"
+	requester: making request: safety_interfaces.srv.SetArm_Request(command=1)
+
+	response:
+	safety_interfaces.srv.SetArm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=True, reason=0, detail='ARM accepted'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794409031, nanosec=512763554), state=1, revision=1))
+and arm_disarm_manager logger:
+
+<pre>
+[INFO] [1794409031.512445611] [arm_disarm_manager]: [OK] - msg age check
+[INFO] [1794409031.512630703] [arm_disarm_manager]: [OK] - battery check
+[INFO] [1794409031.512683684] [arm_disarm_manager]: [OK] - msg age check
+[INFO] [1794409031.512724277] [arm_disarm_manager]: [OK] range check
+[INFO] [1794409031.512807739] [arm_disarm_manager]: arm state updated: 
+stamp:
+  sec: 1794409031
+  nanosec: 512763554
+state: 1
+revision: 1
+</pre>
+
+
+

@@ -9,7 +9,30 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(safety_interfaces REQUIRED)
+
+add_executable(arm_disarm_manager src/arm_disarm_manager.cpp)
+
+target_include_directories(arm_disarm_manager
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(arm_disarm_manager
+  PRIVATE
+    rclcpp::rclcpp
+    sensor_msgs::sensor_msgs
+    std_msgs::std_msgs
+    safety_interfaces::safety_interfaces
+)
+
+
+
+INSTALL(
+  TARGETS arm_disarm_manager
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
