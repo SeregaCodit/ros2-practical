@@ -220,5 +220,85 @@ state: 1
 revision: 1
 </pre>
 
+# add ToF driver from external source
+add to `Dockerfile` run command python dev tools:
+
+    # dev tools
+    python3-venv \
+    python3-colcon-common-extensions \
+    python3-rosdep \
+    python3-argcomplete \
+
+and add `python venv`:
+
+	# Shared Python environment for additional PyPI packages
+	RUN python3 -m venv --system-site-packages /opt/robot-venv \
+		&& /opt/robot-venv/bin/python -m pip install --no-cache-dir \
+			adafruit-circuitpython-vl53l0x \
+			adafruit-extended-bus
+
+rebuild container
+
+	docker compose -f compose.yml up -d --build
+
+check:
+
+	ros@ros2-pi:/ros2-ws$ which python3
+	/usr/bin/python3
+
+we use system envoirement. Now check ToF driver (installed in robot-venv) and rclcpp (installed in system venv):
+
+	/opt/robot-venv/bin/python3 -c "
+	import rclpy
+	import cv2
+	import gpiozero
+	import adafruit_vl53l0x
+	from adafruit_extended_bus import ExtendedI2C
+	print('All imports OK')
+	"
+
+	>>> All imports OK
+
+warning *"adafruit_vl53l0x" is not accessedPylance* when `import adafruit_vl53l0x` the reason is by default we use system interpreter? so we need change it to `robot-venv`:
+
+1. Ctrl + Shift + P.
+2. type Python: Select Interpreter.
+3. choose Enter interpreter path.
+4. type: `/opt/robot-venv/bin/python3`
+
+and fix it in `/ros2-ws/.vscode/settings.json`, add:
+
+	{
+		"python.defaultInterpreterPath": "/opt/robot-venv/bin/python3",
+		"python.analysis.extraPaths": [
+			"/opt/ros/lyrical/lib/python3.14/site-packages"
+		]
+	}
 
 
+first independent node run:
+
+	ros@ros2-pi:/ros2-ws$ /opt/robot-venv/bin/python3 -m tof_sensor.tof_sensor_range_pub
+
+	[INFO] [1794573548.662601799] [tof_rage_publisher]: initialized
+
+in foxglove:
+
+![lesson5.1_foxglove_range_sensor](../attachments/images/lesson5.1_foxglove_range_sensor.png)
+
+as we can see еру sensor messures вшіефтсу with certain degree of variablility, therefore such mesurements should be approximated. But we don't do this in the current node/ This node will braodcast a raw range.
+
+
+launching some nodes via `ros2 run` while running others within a `venv` envoirement is not very convenient. In general, launching individual nodes in separate terminals is no the best approach. Therefore, moving forward we will use **`Launch files`**
+
+with [launch file](../../../../../ros2-ws/src/lessons/lesson_5.1/hardware/sensors/range/tof_sensor/tof_sensor/launch/tof_sensor.launch.py) node launching becomes simple again:
+
+
+	ros@ros2-pi:/ros2-ws$ ros2 launch tof_sensor tof_sensor.launch.py 
+	
+	[INFO] [launch]: All log files can be found below /home/ros/.ros/log/2026-11-13-13-09-20-006756-ros2-pi-133455
+	[INFO] [launch]: Default logging verbosity is set to INFO
+	[INFO] [python3-1]: process started with pid [133532]
+	[python3-1] /opt/robot-venv/lib/python3.14/site-packages/adafruit_blinka/microcontroller/generic_linux/i2c.py:30: RuntimeWarning: I2C frequency is not settable in python, ignoring!
+	[python3-1]   warnings.warn(
+	[python3-1] [INFO] [1794575362.838803097] [tof_raw_range]: initialized
