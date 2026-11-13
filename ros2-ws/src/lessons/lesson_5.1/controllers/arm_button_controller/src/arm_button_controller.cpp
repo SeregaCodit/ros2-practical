@@ -14,6 +14,7 @@ using namespace std::chrono_literals;
 
 using Clock = std::chrono::steady_clock;
 using ArmState = safety_interfaces::msg::ArmState;
+using SetArm = safety_interfaces::srv::SetArm;
 
 
 class ArmButtonController final : public rclcpp::Node{
@@ -23,6 +24,9 @@ public:
     {
         declare_parameter(keys::PUSH_PERIOD_MS, defaults::PUSH_PERIOD_MS);
 
+        client_ = create_client<SetArm>(
+            "arm_manager"
+        );
 
         button_sub_ = create_subscription<std_msgs::msg::Bool>(
             "button_topic",
@@ -70,6 +74,9 @@ public:
                         state_ ? "ARMED" : "STBY",
                         state_ ? "STBY" : "ARMED"                       
                     );
+
+                    send_request();
+
                     state_ = !state_;
                     switched_ = true;
                     return;
@@ -83,12 +90,38 @@ public:
     }
 
 private:
+    void send_request(){
+        auto request = std::make_shared<SetArm::Request>();
+        
+        if (state_ == ArmState::ARMED){
+            request->command = ArmState::STANDBY;
+        }
+
+        if (state_ == ArmState::STANDBY){
+            request->command = ArmState::ARMED;
+        }
+        
+        client_->async_send_request(
+            request,
+            [this](rclcpp::Client<SetArm>::SharedFuture future){
+                const auto response = future.get();
+                
+                RCLCPP_INFO_STREAM(get_logger(), ""
+                    << safety_interfaces::msg::to_yaml(response->decision)
+                );
+            }
+        );
+    }    
 
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr button_sub_;
+    rclcpp::Client<SetArm>::SharedPtr client_;
     Clock::time_point button_pressed_at{};
     bool prev_state_{false};
     bool switched_{false};
     uint8_t state_{ArmState::STANDBY};
+
+    // SetArm request_;
+    
 };
 
 
