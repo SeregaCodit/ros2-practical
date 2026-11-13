@@ -108,6 +108,10 @@ private:
                 
                 RCLCPP_INFO_STREAM(get_logger(), ""
                     << safety_interfaces::msg::to_yaml(response->decision)
+
+                // TODO process decision
+                // change arm state from uint8_t to ArmState
+                // publish arm state to led
                 );
             }
         );
