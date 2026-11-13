@@ -295,10 +295,16 @@ with [launch file](../../../../../ros2-ws/src/lessons/lesson_5.1/hardware/sensor
 
 
 	ros@ros2-pi:/ros2-ws$ ros2 launch tof_sensor tof_sensor.launch.py 
-	
+
 	[INFO] [launch]: All log files can be found below /home/ros/.ros/log/2026-11-13-13-09-20-006756-ros2-pi-133455
 	[INFO] [launch]: Default logging verbosity is set to INFO
 	[INFO] [python3-1]: process started with pid [133532]
 	[python3-1] /opt/robot-venv/lib/python3.14/site-packages/adafruit_blinka/microcontroller/generic_linux/i2c.py:30: RuntimeWarning: I2C frequency is not settable in python, ignoring!
 	[python3-1]   warnings.warn(
 	[python3-1] [INFO] [1794575362.838803097] [tof_raw_range]: initialized
+
+
+# Button
+
+we will reuse the [button_node](../../../../../ros2-ws/src/lessons/lesson_04/gpio_driver/src/button_node.cpp) from gpio_driver (lesson 4). This node simply broadcasts yhe button state at a frquency of 10 Hz and also reports each state change  ndividually. This is actually what we need.
+
