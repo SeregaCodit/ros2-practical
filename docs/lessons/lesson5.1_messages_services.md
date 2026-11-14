@@ -44,29 +44,36 @@ tof sensor is at 0x29 as expected.
 
 **Bradboard connection is correct. All components are working as expected.**
 
+# Architecture
+![lesson5.1.drawio](../attachments/images/lesson5.1.drawio.png)
+
 # Interfaces
-after building  [safety_interfaces](../../ros2-ws/src/lessons/lesson_5.1/safety_interfaces) package check them:
+after building  [safety_interfaces](../../ros2-ws/src/lessons/lesson_5.1/interfaces/safety_interfaces) package check them:
 <pre>
 ros@rpi:/ros2-ws$ ros2 interface list | grep safety_interfaces
-    safety_interfaces/msg/ArmDecision
-    safety_interfaces/msg/ArmState
-    safety_interfaces/msg/ButtonState
-    safety_interfaces/msg/LedCommand
-    safety_interfaces/srv/SetArm
+	safety_interfaces/msg/ArmDisarmDecision
+	safety_interfaces/srv/AcceptArmDisarm
 
-ros@rpi:/ros2-ws$ ros2 interface show safety_interfaces/msg/ArmState
-uint8 STANDBY=0
-uint8 ARMED=1
+ros@ros2-pi:/ros2-ws$ ros2 interface show safety_interfaces/msg/ArmDisarmDecision 
+uint8 OK=0
+uint8 INVALID_COMMAND=1
+uint8 UPS_UNAVAILABLE=2
+uint8 UPS_INVALID=3
+uint8 LOW_VOLTAGE=4
+uint8 RANGE_SENSOR_UNAVAILABLE=5
+uint8 RANGE_SENSOR_INVALID=6
+uint8 OBSTACLE_TOO_CLOSE=7
+uint8 INTERNAL_ERROR=8
 
 builtin_interfaces/Time stamp
-	int32 sec
-	uint32 nanosec
-uint8 state
-uint32 revision
-# revision incrases by 1 at each state chage
+        int32 sec
+        uint32 nanosec
+uint8 command
+bool accepted
+uint8 reason
+string detail
 
-
-ros@rpi:/ros2-ws$ ros2 interface show safety_interfaces/srv/SetArm 
+ros@ros2-pi:/ros2-ws$ ros2 interface show safety_interfaces/srv/AcceptArmDisarm 
 uint8 ARM=1
 uint8 DISARM=2
 
@@ -74,31 +81,23 @@ uint8 command
 
 ---
 
-safety_interfaces/ArmDecision decision
-	uint8 OK=0
-	uint8 INVALID_COMMAND=1
-	uint8 UPS_UNAVAILABLE=2
-	uint8 UPS_INVALID=3
-	uint8 LOW_VOLTAGE=4
-	uint8 RANGE_SENSOR_UNAVAILABLE=5
-	uint8 RANGE_SENSOR_INVALID=6
-	uint8 OBSTACLE_TOO_CLOSE=7
-	uint8 INTERNAL_ERROR=8
-	builtin_interfaces/Time stamp
-		int32 sec
-		uint32 nanosec
-	uint8 command
-	bool accepted
-	uint8 reason
-	string detail
-safety_interfaces/ArmState state
-	uint8 STANDBY=0
-	uint8 ARMED=1
-	builtin_interfaces/Time stamp
-		int32 sec
-		uint32 nanosec
-	uint8 state
-	uint32 revision
+safety_interfaces/ArmDisarmDecision decision
+        uint8 OK=0
+        uint8 INVALID_COMMAND=1
+        uint8 UPS_UNAVAILABLE=2
+        uint8 UPS_INVALID=3
+        uint8 LOW_VOLTAGE=4
+        uint8 RANGE_SENSOR_UNAVAILABLE=5
+        uint8 RANGE_SENSOR_INVALID=6
+        uint8 OBSTACLE_TOO_CLOSE=7
+        uint8 INTERNAL_ERROR=8
+        builtin_interfaces/Time stamp
+                int32 sec
+                uint32 nanosec
+        uint8 command
+        bool accepted
+        uint8 reason
+        string detail
 </pre>
 
 
@@ -133,10 +132,8 @@ publishing #2: sensor_msgs.msg.Range(header=std_msgs.msg.Header(stamp=builtin_in
 **terminal 3:**
 
 <pre>
-ros@rpi:/ros2-ws$ ros2 run arming_manager arm_disarm_manager \
-	--ros-args -r /range_sensor_topic:=/range_data \
-	-r /battery_state_topic:=/robot/diagnostics/ups_battery_state
-[INFO] [1794408043.701906219] [arm_disarm_manager]: INITIALIZED
+ros@ros2-pi:/ros2-ws$ ros2 run arming_manager arm_disarm_manager        --ros-args -r /range_sensor_topic:=/range_topic         -r /battery_state_topic:=/robot/diagnostics/ups_battery_state
+
 </pre>
 
 in foxglove:
@@ -146,7 +143,7 @@ in foxglove:
 
 send arming request
 <pre>
-ros@rpi:/ros2-ws$ ros2 service call arm_manager safety_interfaces/srv/SetArm "{command: 1}"
+ros@rpi:/ros2-ws$ ros2 service call arm_disarm_manager safety_interfaces/srv/SetArm "{command: 1}"
 requester: making request: safety_interfaces.srv.SetArm_Request(command=1)
 
 response:
@@ -180,7 +177,7 @@ also we dont create declared parameter in battery state publisher, so we can's c
 
 and try again:
 
-	ros@rpi:/ros2-ws$ ros2 service call arm_manager safety_interfaces/srv/SetArm "{command: 1}"
+	ros@rpi:/ros2-ws$ ros2 service call arm_disarm_manager safety_interfaces/srv/SetArm "{command: 1}"
 	requester: making request: safety_interfaces.srv.SetArm_Request(command=1)
 
 	response:
@@ -200,7 +197,7 @@ the reason is our syntethic data of `Range sensor` has stamp with no setted up t
 	publishing #1: sensor_msgs.msg.Range(header=std_msgs.msg.Header(stamp=builtin_interfaces.msg.Time(sec=1794408955, nanosec=518027334), frame_id=''), radiation_type=1, field_of_view=0.44, min_range=0.03, max_range=2.0, range=0.5, variance=0.0)
 
 try set ARM again:
-	ros@rpi:/ros2-ws$ ros2 service call arm_manager safety_interfaces/srv/SetArm "{command: 1}"
+	ros@rpi:/ros2-ws$ ros2 service call arm_disarm_manager safety_interfaces/srv/SetArm "{command: 1}"
 	requester: making request: safety_interfaces.srv.SetArm_Request(command=1)
 
 	response:
@@ -308,3 +305,4 @@ with [launch file](../../../../../ros2-ws/src/lessons/lesson_5.1/hardware/sensor
 
 we will reuse the [button_node](../../../../../ros2-ws/src/lessons/lesson_04/gpio_driver/src/button_node.cpp) from gpio_driver (lesson 4). This node simply broadcasts yhe button state at a frquency of 10 Hz and also reports each state change  ndividually. This is actually what we need.
 
+Beakin
