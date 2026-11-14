@@ -48,7 +48,7 @@ public:
              defaults::MIN_ARM_VOLTAGE);
 
         battery_state_sub_ = create_subscription<BatteryState>(
-            "battery_state", // define real name with remapping
+            "battery_state_topic", // define real name with remapping
             rclcpp::QoS(10),
             [this](const BatteryState &msg){
 
@@ -71,7 +71,7 @@ public:
         );
         // Service
         service_ = create_service<AcceptArmDisarm>(
-            "arm_manager",
+            "arm_disarm_manager",
             [this](const std::shared_ptr<AcceptArmDisarm::Request> request,
                 std::shared_ptr<AcceptArmDisarm::Response> response)
                 {
@@ -216,7 +216,7 @@ private:
             return ArmDisarmDecision::OBSTACLE_TOO_CLOSE;
         }
 
-        RCLCPP_INFO(get_logger(), "[OK] range check");
+        RCLCPP_INFO(get_logger(), "[OK] - range check");
         return ArmDisarmDecision::OK;
     }
 
@@ -252,7 +252,7 @@ private:
                     
                     current_arm_decision_ = decision;
 
-                    arm_decision_publisher_->publish(current_arm_decision_);
+                    // arm_decision_publisher_->publish(current_arm_decision_);
                     return;
                 }
 
@@ -263,7 +263,7 @@ private:
                 decision.detail = "DISARM accepted";
                 current_arm_decision_ = decision;
 
-                arm_decision_publisher_->publish(current_arm_decision_);
+                // arm_decision_publisher_->publish(current_arm_decision_);
                 return;
             }
 
@@ -284,7 +284,7 @@ private:
                 decision.detail = "battery state is unsafe";
                 current_arm_decision_ = decision;
 
-                arm_decision_publisher_->publish(current_arm_decision_);
+                // arm_decision_publisher_->publish(current_arm_decision_);
                 return;
             }
 
@@ -294,7 +294,7 @@ private:
                 decision.detail = "unconsistent range data";
                 current_arm_decision_ = decision;
 
-                arm_decision_publisher_->publish(current_arm_decision_);
+                // arm_decision_publisher_->publish(current_arm_decision_);
                 return;
             }
 
@@ -304,7 +304,7 @@ private:
             decision.detail = "ARM accepted";
             current_arm_decision_ = decision;
             
-            arm_decision_publisher_->publish(current_arm_decision_);
+            // arm_decision_publisher_->publish(current_arm_decision_);
     };
 
 
@@ -320,7 +320,7 @@ private:
     rclcpp::Subscription<BatteryState>::SharedPtr battery_state_sub_;
     rclcpp::Subscription<Range>::SharedPtr range_sensor_sub_;
 
-    rclcpp::Publisher<ArmDisarmDecision>::SharedPtr arm_decision_publisher_;
+    // rclcpp::Publisher<ArmDisarmDecision>::SharedPtr arm_decision_publisher_;
 
 };
 
