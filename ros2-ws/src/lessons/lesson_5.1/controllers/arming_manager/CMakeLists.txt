@@ -11,6 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(safety_interfaces REQUIRED)
+find_package(system_interfaces REQUIRED)
 
 add_executable(arm_disarm_manager src/arm_disarm_manager.cpp)
 
@@ -25,6 +26,7 @@ target_link_libraries(arm_disarm_manager
     sensor_msgs::sensor_msgs
     std_msgs::std_msgs
     safety_interfaces::safety_interfaces
+    system_interfaces::system_interfaces
 )
 
 

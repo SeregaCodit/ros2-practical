@@ -11,15 +11,16 @@
 #include <cmath>
 
 
-#include "safety_interfaces/msg/arm_state.hpp"
-#include "safety_interfaces/msg/arm_decision.hpp"
-#include "safety_interfaces/srv/set_arm.hpp"
+#include "safety_interfaces/msg/arm_disarm_decision.hpp"
+#include "safety_interfaces/srv/accept_arm_disarm.hpp"
+#include "system_interfaces/msg/arming_state.hpp"
 
 #include "arming_manager/params.hpp"
 
-using SetArm = safety_interfaces::srv::SetArm;
-using ArmDecision = safety_interfaces::msg::ArmDecision;
-using ArmState = safety_interfaces::msg::ArmState;
+
+using ArmDisarmDecision = safety_interfaces::msg::ArmDisarmDecision;
+using ArmingState = system_interfaces::msg::ArmingState;
+using AcceptArmDisarm = safety_interfaces::srv::AcceptArmDisarm;
 
 using BatteryState = sensor_msgs::msg::BatteryState;
 using Range = sensor_msgs::msg::Range;
@@ -37,11 +38,6 @@ public:
     : Node ("arm_disarm_manager")
     {   
 
-        // ArmState init
-        current_arm_state_.stamp = now();
-        current_arm_state_.state = ArmState::STANDBY;
-        current_arm_state_.revision = 0;
-
         // sensors heartbeat
         declare_parameter<int64_t>(keys::HEARTBEAT_TIMEOUT_MS,
              defaults::MIN_HEARTBEAT_TIMEOUT);
@@ -52,7 +48,7 @@ public:
              defaults::MIN_ARM_VOLTAGE);
 
         battery_state_sub_ = create_subscription<BatteryState>(
-            "battery_state_topic", // define real name with remapping
+            "battery_state", // define real name with remapping
             rclcpp::QoS(10),
             [this](const BatteryState &msg){
 
@@ -74,32 +70,32 @@ public:
             }
         );
         // Service
-        service_ = create_service<SetArm>(
+        service_ = create_service<AcceptArmDisarm>(
             "arm_manager",
-            [this](const std::shared_ptr<SetArm::Request> request,
-                std::shared_ptr<SetArm::Response> response)
+            [this](const std::shared_ptr<AcceptArmDisarm::Request> request,
+                std::shared_ptr<AcceptArmDisarm::Response> response)
                 {
                     handle_arm_request(request, response);
                 }
         );
-        // ArmState publishing
-        arm_state_publisher_ = create_publisher<ArmState>(
-            "arm_state",
-            rclcpp::QoS(10)
-        );
+        // // ArmingState publishing
+        // arm_state_publisher_ = create_publisher<ArmingState>(
+        //     "arm_state",
+        //     rclcpp::QoS(10)
+        // );
 
-        arm_state_pub_timer_ = create_wall_timer(
-            100ms,
-            [this](){
-                arm_state_publisher_->publish(current_arm_state_);
-            }
-        ); 
+        // arm_state_pub_timer_ = create_wall_timer(
+        //     100ms,
+        //     [this](){
+        //         arm_state_publisher_->publish(current_arm_state_);
+        //     }
+        // ); 
 
-        // ArmDecision publishing
-        arm_decision_publisher_ = create_publisher<ArmDecision>(
-            "arm_decision",
-            rclcpp::QoS(10)
-        );
+    //     // ArmDisarmDecision publishing
+    //     arm_decision_publisher_ = create_publisher<ArmDisarmDecision>(
+    //         "arm_decision",
+    //         rclcpp::QoS(10)
+    //     );
 
         RCLCPP_INFO(get_logger(), "INITIALIZED");
     };
@@ -143,14 +139,14 @@ private:
         const auto &msg = battery_state_msg_;
         if (!has_battery_state_){
             RCLCPP_ERROR(get_logger(), "No battery_state!");
-            return ArmDecision::UPS_UNAVAILABLE;
+            return ArmDisarmDecision::UPS_UNAVAILABLE;
         }
 
         if (!check_time_freshness(msg.header)){
             RCLCPP_ERROR(get_logger(),
                 "battery state msg is too old"
             );
-            return ArmDecision::UPS_UNAVAILABLE;
+            return ArmDisarmDecision::UPS_UNAVAILABLE;
         }
         
         if (!std::isfinite(msg.voltage) ||
@@ -159,7 +155,7 @@ private:
                 "battery voltage must be > 0.0. Got %f",
                 msg.voltage
             );
-            return ArmDecision::UPS_INVALID;
+            return ArmDisarmDecision::UPS_INVALID;
         }
 
         auto min_arm_voltage = get_parameter(keys::MIN_ARM_VOLTAGE_V).as_double();
@@ -168,11 +164,11 @@ private:
                 "battery voltage is lower safe thrashold. Got %f, threshold %f",
                 msg.voltage, defaults::MIN_ARM_VOLTAGE
             );
-            return ArmDecision::LOW_VOLTAGE;
+            return ArmDisarmDecision::LOW_VOLTAGE;
         }
 
         RCLCPP_INFO(get_logger(), "[OK] - battery check");
-        return ArmDecision::OK;
+        return ArmDisarmDecision::OK;
     }
 
 
@@ -182,14 +178,14 @@ private:
             RCLCPP_ERROR(get_logger(),
                 "no range sensor data"
             );
-            return ArmDecision::RANGE_SENSOR_UNAVAILABLE;
+            return ArmDisarmDecision::RANGE_SENSOR_UNAVAILABLE;
         }
 
         if (!check_time_freshness(msg.header)){
             RCLCPP_ERROR(get_logger(),
                 "range sensor msg is too old"
             );
-            return ArmDecision::RANGE_SENSOR_UNAVAILABLE;
+            return ArmDisarmDecision::RANGE_SENSOR_UNAVAILABLE;
         }
 
         // accept +inf values for range sensor
@@ -208,7 +204,7 @@ private:
                 "range data is unconsistent: \n" 
                 << sensor_msgs::msg::to_yaml(msg)
             );
-            return ArmDecision::RANGE_SENSOR_INVALID;
+            return ArmDisarmDecision::RANGE_SENSOR_INVALID;
         }
 
         auto min_dist = get_parameter(keys::MIN_OBSTACLE_DIST_M).as_double();
@@ -217,130 +213,114 @@ private:
                 "obstacle is too close (%f) m. Min: %f",
                 msg.range, min_dist
             );
-            return ArmDecision::OBSTACLE_TOO_CLOSE;
+            return ArmDisarmDecision::OBSTACLE_TOO_CLOSE;
         }
 
         RCLCPP_INFO(get_logger(), "[OK] range check");
-        return ArmDecision::OK;
+        return ArmDisarmDecision::OK;
     }
 
 
-    void update_current_arm_state(const uint8_t target_state){
+    // void update_current_arm_state(const uint8_t target_state){
         
-        if (current_arm_state_.state != target_state){
-            current_arm_state_.state = target_state;
-            current_arm_state_.stamp = now();
-            current_arm_state_.revision ++;   
-        }
+    //     if (current_arm_state_.state != target_state){
+    //         current_arm_state_.state = target_state;
+    //         current_arm_state_.stamp = now();
+    //         current_arm_state_.revision ++;   
+    //     }
 
-        RCLCPP_INFO_STREAM(get_logger(),
-            "arm state updated: \n"
-            << safety_interfaces::msg::to_yaml(current_arm_state_)
-        );
-    }
+    //     RCLCPP_INFO_STREAM(get_logger(),
+    //         "arm state updated: \n"
+    //         << safety_interfaces::msg::to_yaml(current_arm_state_)
+    //     );
+    // }
 
 
-    void handle_arm_request(const std::shared_ptr<SetArm::Request> request,
-        std::shared_ptr<SetArm::Response> response){
+    void handle_arm_request(const std::shared_ptr<AcceptArmDisarm::Request> request,
+        std::shared_ptr<AcceptArmDisarm::Response> response){
             auto &decision = response->decision;
             
             decision.command = request->command;
             decision.accepted = false;
 
             // command validation
-            if (request->command != SetArm::Request::ARM &&
-                request->command != SetArm::Request::DISARM){
-                    decision.reason = ArmDecision::INVALID_COMMAND;
+            if (request->command != AcceptArmDisarm::Request::ARM &&
+                request->command != AcceptArmDisarm::Request::DISARM){
+                    decision.reason = ArmDisarmDecision::INVALID_COMMAND;
                     decision.detail = "invalid command " + 
                         std::to_string(request->command);
                     
                     current_arm_decision_ = decision;
-                    response->state = current_arm_state_;
+
                     arm_decision_publisher_->publish(current_arm_decision_);
                     return;
                 }
 
             // DISARM IS UNCONDITIONAL
-            if (request->command == SetArm::Request::DISARM){
+            if (request->command == AcceptArmDisarm::Request::DISARM){
                 decision.accepted = true;
-                decision.reason = ArmDecision::OK;
+                decision.reason = ArmDisarmDecision::OK;
                 decision.detail = "DISARM accepted";
                 current_arm_decision_ = decision;
 
-                update_current_arm_state(ArmState::STANDBY);
-
-                
-                response->state = current_arm_state_;
-                arm_state_publisher_->publish(current_arm_state_);
                 arm_decision_publisher_->publish(current_arm_decision_);
                 return;
             }
 
-            if (current_arm_state_.state == ArmState::ARMED){
-                decision.accepted = true;
-                decision.reason = ArmDecision::OK;
-                decision.detail = "Already ARMED";
+            // if (current_arm_state_.state == ArmingState::ARMED){
+            //     decision.accepted = true;
+            //     decision.reason = ArmDisarmDecision::OK;
+            //     decision.detail = "Already ARMED";
 
-                response->state = current_arm_state_;
-                arm_state_publisher_->publish(current_arm_state_);
-
-                current_arm_decision_ = decision;
-                arm_decision_publisher_->publish(current_arm_decision_);
-                return;
-            }
+            //     current_arm_decision_ = decision;
+            //     arm_decision_publisher_->publish(current_arm_decision_);
+            //     return;
+            // }
 
             // sensors check
             auto bat_reason = battery_check();
-            if (bat_reason != ArmDecision::OK){
+            if (bat_reason != ArmDisarmDecision::OK){
                 decision.reason = bat_reason;
                 decision.detail = "battery state is unsafe";
                 current_arm_decision_ = decision;
 
-                response->state = current_arm_state_;
                 arm_decision_publisher_->publish(current_arm_decision_);
                 return;
             }
 
             auto range_reason = range_check();
-            if (range_reason != ArmDecision::OK){
+            if (range_reason != ArmDisarmDecision::OK){
                 decision.reason = range_reason;
                 decision.detail = "unconsistent range data";
                 current_arm_decision_ = decision;
 
-                response->state = current_arm_state_;
                 arm_decision_publisher_->publish(current_arm_decision_);
                 return;
             }
 
             // all checks ok
             decision.accepted = true;
-            decision.reason = ArmDecision::OK;
+            decision.reason = ArmDisarmDecision::OK;
             decision.detail = "ARM accepted";
             current_arm_decision_ = decision;
             
-            update_current_arm_state(ArmState::ARMED);
-            
-            response->state = current_arm_state_;
-            arm_state_publisher_->publish(current_arm_state_);
             arm_decision_publisher_->publish(current_arm_decision_);
     };
 
 
     BatteryState battery_state_msg_;
     Range range_sensor_msg_;
-    ArmState current_arm_state_{};
-    ArmDecision current_arm_decision_{};
+    // ArmingState current_arm_state_{};
+    ArmDisarmDecision current_arm_decision_{};
 
     bool has_battery_state_{false};
     bool has_range_state_{false};
 
-    rclcpp::Service<SetArm>::SharedPtr service_;
+    rclcpp::Service<AcceptArmDisarm>::SharedPtr service_;
     rclcpp::Subscription<BatteryState>::SharedPtr battery_state_sub_;
     rclcpp::Subscription<Range>::SharedPtr range_sensor_sub_;
-    rclcpp::Publisher<ArmState>::SharedPtr arm_state_publisher_;
-    rclcpp::Publisher<ArmDecision>::SharedPtr arm_decision_publisher_;
 
-    rclcpp::TimerBase::SharedPtr arm_state_pub_timer_;
+    rclcpp::Publisher<ArmDisarmDecision>::SharedPtr arm_decision_publisher_;
 
 };
 
