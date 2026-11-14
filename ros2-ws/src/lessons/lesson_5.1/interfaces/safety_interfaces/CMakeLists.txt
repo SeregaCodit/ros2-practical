@@ -11,11 +11,8 @@ find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/ArmDecision.msg"
-  "msg/ArmState.msg"
-  "msg/ButtonState.msg"
-  "msg/LedCommand.msg"
-  "srv/SetArm.srv"
+  "msg/ArmDisarmDecision.msg"
+  "srv/AcceptArmDisarm.srv"
   DEPENDENCIES builtin_interfaces
 )
 

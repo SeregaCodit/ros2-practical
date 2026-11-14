@@ -1,0 +1,8 @@
+uint8 ARM=1
+uint8 DISARM=2
+
+uint8 command
+
+---
+
+safety_interfaces/ArmDisarmDecision decision
