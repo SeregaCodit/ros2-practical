@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(arm_button_controller)
+project(button_long_press_adapter)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -10,23 +10,25 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(safety_interfaces REQUIRED)
+find_package(system_interfaces REQUIRED)
 
-add_executable(arm_disarm_button_controller src/arm_button_controller.cpp)
+add_executable(button_long_press_adapter src/button_long_press_adapter.cpp)
 
-target_include_directories(arm_disarm_button_controller
+target_include_directories(button_long_press_adapter
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 
-target_link_libraries(arm_disarm_button_controller
+target_link_libraries(button_long_press_adapter
   rclcpp::rclcpp
   std_msgs::std_msgs
   safety_interfaces::safety_interfaces
+  system_interfaces::system_interfaces
 )
 
 INSTALL(
-  TARGETS arm_disarm_button_controller
+  TARGETS button_long_press_adapter
   DESTINATION lib/${PROJECT_NAME}
 )
 

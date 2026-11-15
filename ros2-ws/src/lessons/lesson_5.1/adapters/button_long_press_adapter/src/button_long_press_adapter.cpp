@@ -1,9 +1,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 
-#include "safety_interfaces/srv/set_arm.hpp"
-#include "safety_interfaces/msg/arm_state.hpp"
-#include "arm_button_controller/params.hpp"
+#include "button_long_press_adapter/params.hpp"
 
 #include <memory>
 #include <chrono>
@@ -13,23 +11,18 @@
 using namespace std::chrono_literals;
 
 using Clock = std::chrono::steady_clock;
-using ArmState = safety_interfaces::msg::ArmState;
-using SetArm = safety_interfaces::srv::SetArm;
 
 
-class ArmButtonController final : public rclcpp::Node{
+class ButtonLongPressAdapter final : public rclcpp::Node{
+    // publish True if button pushed over 3 sec
 public:
-    ArmButtonController()
-    : Node("arm_button_controller")
+    ButtonLongPressAdapter()
+    : Node("button_long_press_adapter")
     {
         declare_parameter(keys::PUSH_PERIOD_MS, defaults::PUSH_PERIOD_MS);
 
-        client_ = create_client<SetArm>(
-            "arm_manager"
-        );
-
         button_sub_ = create_subscription<std_msgs::msg::Bool>(
-            "button_topic",
+            "button_state_topic",
             rclcpp::QoS(10),
             [this](const std_msgs::msg::Bool::SharedPtr msg){
 
@@ -45,7 +38,7 @@ public:
                 ){
                     button_pressed_at = Clock::now();
                     prev_state_ = msg->data;
-                    switched_ = false;
+                    triggered_ = false;
                     RCLCPP_INFO(get_logger(), "button pushed");
                     return;
                 }
@@ -56,7 +49,7 @@ public:
                     && elapsed < push_period_ms
                 ){
                     prev_state_ = msg->data;
-                    RCLCPP_INFO(get_logger(), "Button realise to early: %f s",
+                    RCLCPP_INFO(get_logger(), "Button realised to early: %f s",
                     std::chrono::duration<double>(elapsed).count()
                 );
                     return;
@@ -64,21 +57,20 @@ public:
                 // button holded enougth
                 if (msg->data  
                     && prev_state_
-                    && !switched_
+                    && !triggered_
                     && elapsed  >= push_period_ms
                 ){
-                    // send request to server
+                    // publish long_press is true
                     RCLCPP_INFO(get_logger(),
-                        "button pressed for %f seconds. Try to change %s -> %s",
-                        std::chrono::duration<double>(elapsed).count(),
-                        state_ ? "ARMED" : "STBY",
-                        state_ ? "STBY" : "ARMED"                       
+                        "button pressed for %f seconds. Publishing long_press",
+                        std::chrono::duration<double>(elapsed).count()                    
                     );
+                    
+                    std_msgs::msg::Bool is_long_press;
+                    is_long_press.data = true;
+                    long_press_publisher_->publish(is_long_press);
 
-                    send_request();
-
-                    state_ = !state_;
-                    switched_ = true;
+                    triggered_ = true;
                     return;
                 } 
 
@@ -86,46 +78,21 @@ public:
             }
         );
 
+        long_press_publisher_ = create_publisher<std_msgs::msg::Bool>(
+            "long_press",
+            rclcpp::QoS(10)
+        );
+
         RCLCPP_INFO(get_logger(), "INITIALIZED");
     }
 
 private:
-    void send_request(){
-        auto request = std::make_shared<SetArm::Request>();
-        
-        if (state_ == ArmState::ARMED){
-            request->command = ArmState::STANDBY;
-        }
-
-        if (state_ == ArmState::STANDBY){
-            request->command = ArmState::ARMED;
-        }
-        
-        client_->async_send_request(
-            request,
-            [this](rclcpp::Client<SetArm>::SharedFuture future){
-                const auto response = future.get();
-                
-                RCLCPP_INFO_STREAM(get_logger(), ""
-                    << safety_interfaces::msg::to_yaml(response->decision)
-
-                // TODO process decision
-                // change arm state from uint8_t to ArmState
-                // publish arm state to led
-                );
-            }
-        );
-    }    
-
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr button_sub_;
-    rclcpp::Client<SetArm>::SharedPtr client_;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr long_press_publisher_;
     Clock::time_point button_pressed_at{};
     bool prev_state_{false};
-    bool switched_{false};
-    uint8_t state_{ArmState::STANDBY};
-
-    // SetArm request_;
-    
+    bool triggered_{false};
+     
 };
 
 
@@ -135,9 +102,9 @@ int main(int argc, char ** argv)
     rclcpp::init(argc, argv);
 
     try{
-        rclcpp::spin(std::make_shared<ArmButtonController>());
+        rclcpp::spin(std::make_shared<ButtonLongPressAdapter>());
     } catch (const std::exception & ex) {
-        std::cerr << "ArmButtonController error:"
+        std::cerr << "ButtonLongPressAdapter error:"
                   << ex.what() << '\n';
         
         result = 1;
