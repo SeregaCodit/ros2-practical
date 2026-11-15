@@ -303,6 +303,6 @@ with [launch file](../../../../../ros2-ws/src/lessons/lesson_5.1/hardware/sensor
 
 # Button
 
-we will reuse the [button_node](../../../../../ros2-ws/src/lessons/lesson_04/gpio_driver/src/button_node.cpp) from gpio_driver (lesson 4). This node simply broadcasts yhe button state at a frquency of 10 Hz and also reports each state change  ndividually. This is actually what we need.
+we will reuse the [button_node](../../../../../ros2-ws/src/lessons/lesson_04/gpio_driver/src/button_node.cpp) from gpio_driver (lesson 4). This node simply broadcasts the button state at a frquency of 10 Hz and also reports each state change  individually. This is actually what we need.
 
-Beakin
+[button long press adapter](../../ros2-ws/src/lessons/lesson_5.1/adapters/button_long_press_adapter) handles holding the button for 3 seconds or more and publishes information about this event in separate topic, to witch the ArmController will be subscribed.
