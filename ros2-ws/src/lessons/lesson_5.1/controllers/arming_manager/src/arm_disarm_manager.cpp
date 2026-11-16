@@ -19,7 +19,7 @@
 
 
 using ArmDisarmDecision = safety_interfaces::msg::ArmDisarmDecision;
-using ArmingState = system_interfaces::msg::ArmingState;
+// using ArmingState = system_interfaces::msg::ArmingState;
 using AcceptArmDisarm = safety_interfaces::srv::AcceptArmDisarm;
 
 using BatteryState = sensor_msgs::msg::BatteryState;

@@ -136,9 +136,6 @@ ros@ros2-pi:/ros2-ws$ ros2 run arming_manager arm_disarm_manager        --ros-ar
 
 </pre>
 
-in foxglove:
-![1_foxglove_arm_disarm_manager](../attachments/images/lesson5.1_foxglove_arm_disarm_manager.png)
-
 **telminal 4:** 
 
 send arming request
@@ -279,9 +276,6 @@ first independent node run:
 
 	[INFO] [1794573548.662601799] [tof_rage_publisher]: initialized
 
-in foxglove:
-
-![lesson5.1_foxglove_range_sensor](../attachments/images/lesson5.1_foxglove_range_sensor.png)
 
 as we can see еру sensor messures вшіефтсу with certain degree of variablility, therefore such mesurements should be approximated. But we don't do this in the current node/ This node will braodcast a raw range.
 
@@ -306,3 +300,9 @@ with [launch file](../../../../../ros2-ws/src/lessons/lesson_5.1/hardware/sensor
 we will reuse the [button_node](../../../../../ros2-ws/src/lessons/lesson_04/gpio_driver/src/button_node.cpp) from gpio_driver (lesson 4). This node simply broadcasts the button state at a frquency of 10 Hz and also reports each state change  individually. This is actually what we need.
 
 [button long press adapter](../../ros2-ws/src/lessons/lesson_5.1/adapters/button_long_press_adapter) handles holding the button for 3 seconds or more and publishes information about this event in separate topic, to witch the ArmController will be subscribed.
+
+### in Foxglove we have Graph:
+
+![longpress_button_adapter](<../attachments/images/lesson5.1_foxglobe longpress_button_adapter.png>)
+
+# ArmController
