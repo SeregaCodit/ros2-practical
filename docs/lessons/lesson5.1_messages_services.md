@@ -140,11 +140,11 @@ ros@ros2-pi:/ros2-ws$ ros2 run arming_manager arm_disarm_manager        --ros-ar
 
 send arming request
 <pre>
-ros@rpi:/ros2-ws$ ros2 service call arm_disarm_manager safety_interfaces/srv/SetArm "{command: 1}"
-requester: making request: safety_interfaces.srv.SetArm_Request(command=1)
+ros@rpi:/ros2-ws$ ros2 service call arm_disarm_manager safety_interfaces/srv/AcceptArmDisarm "{command: 1}"
+requester: making request: safety_interfaces.srv.AcceptArmDisarm_Request(command=1)
 
 response:
-safety_interfaces.srv.SetArm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=False, reason=2, detail='battery state is unsafe'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794408043, nanosec=679907282), state=0, revision=0))
+safety_interfaces.srv.AcceptArmDisarm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=False, reason=2, detail='battery state is unsafe'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794408043, nanosec=679907282), state=0, revision=0))
 </pre>
 
 we got `accepted=False` with `reason=2`, `detail='battery state is unsafe'`
@@ -174,11 +174,11 @@ also we dont create declared parameter in battery state publisher, so we can's c
 
 and try again:
 
-	ros@rpi:/ros2-ws$ ros2 service call arm_disarm_manager safety_interfaces/srv/SetArm "{command: 1}"
-	requester: making request: safety_interfaces.srv.SetArm_Request(command=1)
+	ros@rpi:/ros2-ws$ ros2 service call arm_disarm_manager safety_interfaces/srv/AcceptArmDisarm "{command: 1}"
+	requester: making request: safety_interfaces.srv.AcceptArmDisarm_Request(command=1)
 
 	response:
-	safety_interfaces.srv.SetArm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=False, reason=5, detail='unconsistent range data'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794408043, nanosec=679907282), state=0, revision=0))
+	safety_interfaces.srv.AcceptArmDisarm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=False, reason=5, detail='unconsistent range data'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794408043, nanosec=679907282), state=0, revision=0))
 
 got new negative decision and from `arm_disarm_manager`:
 
@@ -194,11 +194,11 @@ the reason is our syntethic data of `Range sensor` has stamp with no setted up t
 	publishing #1: sensor_msgs.msg.Range(header=std_msgs.msg.Header(stamp=builtin_interfaces.msg.Time(sec=1794408955, nanosec=518027334), frame_id=''), radiation_type=1, field_of_view=0.44, min_range=0.03, max_range=2.0, range=0.5, variance=0.0)
 
 try set ARM again:
-	ros@rpi:/ros2-ws$ ros2 service call arm_disarm_manager safety_interfaces/srv/SetArm "{command: 1}"
-	requester: making request: safety_interfaces.srv.SetArm_Request(command=1)
+	ros@rpi:/ros2-ws$ ros2 service call arm_disarm_manager safety_interfaces/srv/AcceptArmDisarm "{command: 1}"
+	requester: making request: safety_interfaces.srv.AcceptArmDisarm_Request(command=1)
 
 	response:
-	safety_interfaces.srv.SetArm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=True, reason=0, detail='ARM accepted'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794409031, nanosec=512763554), state=1, revision=1))
+	safety_interfaces.srv.AcceptArmDisarm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=True, reason=0, detail='ARM accepted'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794409031, nanosec=512763554), state=1, revision=1))
 and arm_disarm_manager logger:
 
 <pre>
