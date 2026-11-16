@@ -78,24 +78,6 @@ public:
                     handle_arm_request(request, response);
                 }
         );
-        // // ArmingState publishing
-        // arm_state_publisher_ = create_publisher<ArmingState>(
-        //     "arm_state",
-        //     rclcpp::QoS(10)
-        // );
-
-        // arm_state_pub_timer_ = create_wall_timer(
-        //     100ms,
-        //     [this](){
-        //         arm_state_publisher_->publish(current_arm_state_);
-        //     }
-        // ); 
-
-    //     // ArmDisarmDecision publishing
-    //     arm_decision_publisher_ = create_publisher<ArmDisarmDecision>(
-    //         "arm_decision",
-    //         rclcpp::QoS(10)
-    //     );
 
         RCLCPP_INFO(get_logger(), "INITIALIZED");
     };
@@ -221,21 +203,6 @@ private:
     }
 
 
-    // void update_current_arm_state(const uint8_t target_state){
-        
-    //     if (current_arm_state_.state != target_state){
-    //         current_arm_state_.state = target_state;
-    //         current_arm_state_.stamp = now();
-    //         current_arm_state_.revision ++;   
-    //     }
-
-    //     RCLCPP_INFO_STREAM(get_logger(),
-    //         "arm state updated: \n"
-    //         << safety_interfaces::msg::to_yaml(current_arm_state_)
-    //     );
-    // }
-
-
     void handle_arm_request(const std::shared_ptr<AcceptArmDisarm::Request> request,
         std::shared_ptr<AcceptArmDisarm::Response> response){
             auto &decision = response->decision;
@@ -252,7 +219,6 @@ private:
                     
                     current_arm_decision_ = decision;
 
-                    // arm_decision_publisher_->publish(current_arm_decision_);
                     return;
                 }
 
@@ -263,19 +229,8 @@ private:
                 decision.detail = "DISARM accepted";
                 current_arm_decision_ = decision;
 
-                // arm_decision_publisher_->publish(current_arm_decision_);
                 return;
             }
-
-            // if (current_arm_state_.state == ArmingState::ARMED){
-            //     decision.accepted = true;
-            //     decision.reason = ArmDisarmDecision::OK;
-            //     decision.detail = "Already ARMED";
-
-            //     current_arm_decision_ = decision;
-            //     arm_decision_publisher_->publish(current_arm_decision_);
-            //     return;
-            // }
 
             // sensors check
             auto bat_reason = battery_check();
@@ -284,7 +239,6 @@ private:
                 decision.detail = "battery state is unsafe";
                 current_arm_decision_ = decision;
 
-                // arm_decision_publisher_->publish(current_arm_decision_);
                 return;
             }
 
@@ -294,7 +248,6 @@ private:
                 decision.detail = "unconsistent range data";
                 current_arm_decision_ = decision;
 
-                // arm_decision_publisher_->publish(current_arm_decision_);
                 return;
             }
 
@@ -304,7 +257,6 @@ private:
             decision.detail = "ARM accepted";
             current_arm_decision_ = decision;
             
-            // arm_decision_publisher_->publish(current_arm_decision_);
     };
 
 
@@ -319,8 +271,6 @@ private:
     rclcpp::Service<AcceptArmDisarm>::SharedPtr service_;
     rclcpp::Subscription<BatteryState>::SharedPtr battery_state_sub_;
     rclcpp::Subscription<Range>::SharedPtr range_sensor_sub_;
-
-    // rclcpp::Publisher<ArmDisarmDecision>::SharedPtr arm_decision_publisher_;
 
 };
 

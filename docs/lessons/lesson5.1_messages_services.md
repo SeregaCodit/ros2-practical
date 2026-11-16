@@ -301,8 +301,16 @@ we will reuse the [button_node](../../../../../ros2-ws/src/lessons/lesson_04/gpi
 
 [button long press adapter](../../ros2-ws/src/lessons/lesson_5.1/adapters/button_long_press_adapter) handles holding the button for 3 seconds or more and publishes information about this event in separate topic, to witch the ArmController will be subscribed.
 
-### in Foxglove we have Graph:
+# Final result
 
-![longpress_button_adapter](<../attachments/images/lesson5.1_foxglobe longpress_button_adapter.png>)
+as we can see our Graph in foxglove matches our diagram in DrawIO.
 
-# ArmController
+![lesson5.1_foxglove](../attachments/images/lesson5.1_foxglove.png)
+
+# The Huge BUT
+
+Currently, to perform a simle operation - such as toggling an LED via long press of a button - we have to use 9 terminals. This is not very conveinement. Therefore, we will create a [bring-up package](../../../../../ros2-ws/src/lessons/lesson_5.1/lesson_05_1_bringup). However, we will examine bring-up files in more deatail in one of the upcoming lessons
+
+Now we can run all nodes that using in the lesson via just one command
+
+	ros2 launch lesson_05_1_bringup arm_system.launch.py
