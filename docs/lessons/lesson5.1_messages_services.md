@@ -75,7 +75,7 @@ string detail
 
 ros@ros2-pi:/ros2-ws$ ros2 interface show safety_interfaces/srv/AcceptArmDisarm 
 uint8 ARM=1
-uint8 DISARM=2
+uint8 DISARM=0
 
 uint8 command
 

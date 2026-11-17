@@ -14,7 +14,7 @@ TOPIC_NAME: str = "range_topic"
 
 
 class VL53L0X(Node):
-    MIN_RANGE_M: float = 0.003
+    MIN_RANGE_M: float = 0.03
     MAX_RANGE_M: float = 2.0
     RADIATION_TYPE: int = 1 # INFRARED from Range msg
     FOV_RAD = math.radians(25.0)
@@ -54,9 +54,10 @@ class VL53L0X(Node):
 
     def _publish_range(self):
         try:
-            distance_mm = self.sensor.distance
+            distance_mm = self.sensor.range
         except Exception as ex:
             self.get_logger().error(f"read failed:\n{ex}")
+            return
 
         stamp = self.get_clock().now().to_msg()
         distance_m = distance_mm / 1000.0
@@ -66,6 +67,7 @@ class VL53L0X(Node):
             not (self.MIN_RANGE_M <= distance_m <= self.MAX_RANGE_M)
         ])):
             self.report_failure(f"Invalid range: {distance_m} m")
+            return
 
         self.failed_reads = 0
 
