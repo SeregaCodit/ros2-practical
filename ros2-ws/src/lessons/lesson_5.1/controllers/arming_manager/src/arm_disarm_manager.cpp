@@ -19,7 +19,6 @@
 
 
 using ArmDisarmDecision = safety_interfaces::msg::ArmDisarmDecision;
-// using ArmingState = system_interfaces::msg::ArmingState;
 using AcceptArmDisarm = safety_interfaces::srv::AcceptArmDisarm;
 
 using BatteryState = sensor_msgs::msg::BatteryState;
@@ -170,17 +169,15 @@ private:
             return ArmDisarmDecision::RANGE_SENSOR_UNAVAILABLE;
         }
 
-        // accept +inf values for range sensor
-        if (std::isnan(msg.range) ||  
-            std::isnan(msg.max_range) ||
-            std::isnan(msg.min_range) ||
+        // reject msg.min_range == msg.max_range case
+        // (this is for bool range sensors only)
+        if (!std::isfinite(msg.range) ||  
+            !std::isfinite(msg.max_range) ||
+            !std::isfinite(msg.min_range) ||
             msg.min_range < 0.0f ||
-            // reject msg.min_range == msg.max_range case
-            // (for bool range sensors)
             msg.min_range >= msg.max_range ||
-            msg.range < msg.min_range
-            // accept +inf values for range sensor
-            // msg.range > msg.max_range
+            msg.range < msg.min_range ||
+            msg.range > msg.max_range
             ){
                 RCLCPP_ERROR_STREAM(get_logger(),
                 "range data is unconsistent: \n" 
@@ -209,7 +206,8 @@ private:
             
             decision.command = request->command;
             decision.accepted = false;
-
+            decision.stamp = now();
+            
             // command validation
             if (request->command != AcceptArmDisarm::Request::ARM &&
                 request->command != AcceptArmDisarm::Request::DISARM){
