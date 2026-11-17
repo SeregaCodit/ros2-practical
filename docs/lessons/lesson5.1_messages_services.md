@@ -51,10 +51,10 @@ tof sensor is at 0x29 as expected.
 after building  [safety_interfaces](../../ros2-ws/src/lessons/lesson_5.1/interfaces/safety_interfaces) package check them:
 <pre>
 ros@rpi:/ros2-ws$ ros2 interface list | grep safety_interfaces
-	safety_interfaces/msg/ArmDisarmD
+	safety_interfaces/msg/ArmDisarmDecision
 	safety_interfaces/srv/AcceptArmDisarm
 
-ros@ros2-pi:/ros2-ws$ ros2 interface show safety_interfaces/msg/ArmDisarmD 
+ros@ros2-pi:/ros2-ws$ ros2 interface show safety_interfaces/msg/ArmDisarmDecision 
 uint8 OK=0
 uint8 INVALID_COMMAND=1
 uint8 UPS_UNAVAILABLE=2
@@ -81,7 +81,7 @@ uint8 command
 
 ---
 
-safety_interfaces/ArmDisarmD decision
+safety_interfaces/ArmDisarmDecision decision
         uint8 OK=0
         uint8 INVALID_COMMAND=1
         uint8 UPS_UNAVAILABLE=2
@@ -119,7 +119,7 @@ build and install package. Check node with exisiting [battery state publisher](.
 **terminal 2:**
 <pre>	
 ros@rpi:/ros2-ws$ ros2 topic pub -r 5 \ 
-	/range_data \ 
+	/range_topic \ 
 	sensor_msgs/msg/Range \
 	"{header: auto, radiation_type: 1, field_of_view: 0.44, min_range: 0.03, max_range: 2.0, range: 0.5}"
 
@@ -189,7 +189,7 @@ got new negative decision and from `arm_disarm_manager`:
 
 the reason is our syntethic data of `Range sensor` has stamp with no setted up time. Change it:
 
-	ros@rpi:/ros2-ws$ ros2 topic pub -r 5 /range_data sensor_msgs/msg/Range   "{header: auto, radiation_type: 1, field_of_view: 0.44, min_range: 0.03, max_range: 2.0, range: 0.5}"
+	ros@rpi:/ros2-ws$ ros2 topic pub -r 5 /range_topic sensor_msgs/msg/Range   "{header: auto, radiation_type: 1, field_of_view: 0.44, min_range: 0.03, max_range: 2.0, range: 0.5}"
 	publisher: beginning loop
 	publishing #1: sensor_msgs.msg.Range(header=std_msgs.msg.Header(stamp=builtin_interfaces.msg.Time(sec=1794408955, nanosec=518027334), frame_id=''), radiation_type=1, field_of_view=0.44, min_range=0.03, max_range=2.0, range=0.5, variance=0.0)
 

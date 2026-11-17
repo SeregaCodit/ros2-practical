@@ -143,7 +143,7 @@ private:
         if (min_arm_voltage > msg.voltage){
             RCLCPP_ERROR(get_logger(),
                 "battery voltage is lower safe thrashold. Got %f, threshold %f",
-                msg.voltage, defaults::MIN_ARM_VOLTAGE
+                msg.voltage, min_arm_voltage
             );
             return ArmDisarmDecision::LOW_VOLTAGE;
         }
