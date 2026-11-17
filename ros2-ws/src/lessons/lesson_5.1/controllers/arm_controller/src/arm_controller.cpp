@@ -99,6 +99,11 @@ private:
                     );
 
                     if (response->decision.accepted){
+                        
+                        (request->command == AcceptArmDisarm::Request::ARM)
+                        ? state_.state = ArmingState::ARMED
+                        : state_.state = ArmingState::DISARMED;
+
                         state_.state = request->command;
                         state_.stamp = now();
                         state_.revision ++;
