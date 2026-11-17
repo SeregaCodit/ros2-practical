@@ -51,10 +51,10 @@ tof sensor is at 0x29 as expected.
 after building  [safety_interfaces](../../ros2-ws/src/lessons/lesson_5.1/interfaces/safety_interfaces) package check them:
 <pre>
 ros@rpi:/ros2-ws$ ros2 interface list | grep safety_interfaces
-	safety_interfaces/msg/ArmDisarmDecision
+	safety_interfaces/msg/ArmDisarmDisarmDecision
 	safety_interfaces/srv/AcceptArmDisarm
 
-ros@ros2-pi:/ros2-ws$ ros2 interface show safety_interfaces/msg/ArmDisarmDecision 
+ros@ros2-pi:/ros2-ws$ ros2 interface show safety_interfaces/msg/ArmDisarmDisarmDecision 
 uint8 OK=0
 uint8 INVALID_COMMAND=1
 uint8 UPS_UNAVAILABLE=2
@@ -81,7 +81,7 @@ uint8 command
 
 ---
 
-safety_interfaces/ArmDisarmDecision decision
+safety_interfaces/ArmDisarmDisarmDecision decision
         uint8 OK=0
         uint8 INVALID_COMMAND=1
         uint8 UPS_UNAVAILABLE=2
@@ -144,7 +144,7 @@ ros@rpi:/ros2-ws$ ros2 service call arm_disarm_manager safety_interfaces/srv/Acc
 requester: making request: safety_interfaces.srv.AcceptArmDisarm_Request(command=1)
 
 response:
-safety_interfaces.srv.AcceptArmDisarm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=False, reason=2, detail='battery state is unsafe'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794408043, nanosec=679907282), state=0, revision=0))
+safety_interfaces.srv.AcceptArmDisarm_Response(decision=safety_interfaces.msg.ArmDisarmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=False, reason=2, detail='battery state is unsafe'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794408043, nanosec=679907282), state=0, revision=0))
 </pre>
 
 we got `accepted=False` with `reason=2`, `detail='battery state is unsafe'`
@@ -178,7 +178,7 @@ and try again:
 	requester: making request: safety_interfaces.srv.AcceptArmDisarm_Request(command=1)
 
 	response:
-	safety_interfaces.srv.AcceptArmDisarm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=False, reason=5, detail='unconsistent range data'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794408043, nanosec=679907282), state=0, revision=0))
+	safety_interfaces.srv.AcceptArmDisarm_Response(decision=safety_interfaces.msg.ArmDisarmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=False, reason=5, detail='unconsistent range data'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794408043, nanosec=679907282), state=0, revision=0))
 
 got new negative decision and from `arm_disarm_manager`:
 
@@ -198,7 +198,7 @@ try set ARM again:
 	requester: making request: safety_interfaces.srv.AcceptArmDisarm_Request(command=1)
 
 	response:
-	safety_interfaces.srv.AcceptArmDisarm_Response(decision=safety_interfaces.msg.ArmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=True, reason=0, detail='ARM accepted'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794409031, nanosec=512763554), state=1, revision=1))
+	safety_interfaces.srv.AcceptArmDisarm_Response(decision=safety_interfaces.msg.ArmDisarmDecision(stamp=builtin_interfaces.msg.Time(sec=0, nanosec=0), command=1, accepted=True, reason=0, detail='ARM accepted'), state=safety_interfaces.msg.ArmState(stamp=builtin_interfaces.msg.Time(sec=1794409031, nanosec=512763554), state=1, revision=1))
 and arm_disarm_manager logger:
 
 <pre>
