@@ -2,7 +2,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 
-#include <gpio_driver/debouncer.hpp>
+#include <course_utils/debouncer.hpp>
 
 #include <iostream>
 #include <memory>

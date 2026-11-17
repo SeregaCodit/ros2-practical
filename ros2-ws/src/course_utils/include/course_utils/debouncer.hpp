@@ -13,6 +13,9 @@ public:
     explicit Debouncer(Duration debounce_time)
     : debounce_time_(debounce_time)
     {
+        if (debounce_time_ <=  Duration::zero()){
+            throw std::invalid_argument("debonce time must be greater than 0");
+        };
     }
 
 
@@ -25,7 +28,7 @@ public:
         };
 
         if ((raw_state != stable_state_)
-            && now - changed_at_ > debounce_time_){
+            && now - changed_at_ >= debounce_time_){
                 stable_state_ = raw_state;
                 return true;
         };

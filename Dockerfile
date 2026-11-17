@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     locales \
     nano \
     #dev tools
+    python3-venv \
     python3-colcon-common-extensions \
     python3-rosdep \
     python3-argcomplete \
@@ -56,6 +57,12 @@ RUN apt-get update && apt-get install -y \
     && locale-gen en_US en_US.UTF-8 \
     && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
+
+# Shared Python environment for additional PyPI packages
+RUN python3 -m venv --system-site-packages /opt/robot-venv \
+    && /opt/robot-venv/bin/python -m pip install --no-cache-dir \
+        adafruit-circuitpython-vl53l0x \
+        adafruit-extended-bus
 
 # Create or reuse non-root user
 RUN set -eux; \

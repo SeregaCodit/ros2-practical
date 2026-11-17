@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(course_utils REQUIRED)
 
 # External dependencies
 find_package(PkgConfig REQUIRED)
@@ -30,12 +31,10 @@ target_link_libraries(button_node PRIVATE
   rclcpp::rclcpp
   std_msgs::std_msgs
   PkgConfig::GPIOD_CXX
+  course_utils::course_utils
 )
 
-target_include_directories(button_node
-  PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
+
 
 install(
   TARGETS
