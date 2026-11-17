@@ -27,11 +27,11 @@ public:
             rclcpp::QoS(10),
             [this](const ArmingState &msg){
                 state_ = msg;
-                RCLCPP_INFO_STREAM(
-                    get_logger(),
-                    "got state:\n"
-                    << system_interfaces::msg::to_yaml(msg)
-                );
+                // RCLCPP_INFO_STREAM(
+                //     get_logger(),
+                //     "got state:\n"
+                //     << system_interfaces::msg::to_yaml(msg)
+                // );
 
                 publish_gpio_states();
             }
