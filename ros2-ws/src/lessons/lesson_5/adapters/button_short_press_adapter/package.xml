@@ -3,7 +3,7 @@
 <package format="3">
   <name>button_short_press_adapter</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>handle short button press</description>
   <maintainer email="serega.codit@gmail.com">Serhii</maintainer>
   <license>Apache-2.0</license>
 

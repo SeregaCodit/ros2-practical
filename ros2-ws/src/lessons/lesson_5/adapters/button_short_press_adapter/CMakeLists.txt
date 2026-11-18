@@ -10,6 +10,26 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 
+add_executable(button_short_press_adapter
+  src/button_short_press_adapter.cpp
+  src/main.cpp
+)
+
+target_include_directories(button_short_press_adapter
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(button_short_press_adapter
+  rclcpp::rclcpp
+  std_msgs::std_msgs
+)
+
+INSTALL(
+  TARGETS button_short_press_adapter
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

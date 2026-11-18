@@ -24,7 +24,7 @@ private:
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr short_press_publisher_;
 
     // inernal state
-    Clock::time_point button_pressed_at{};
+    Clock::time_point button_pressed_at_{};
 
     bool prev_state_{false};
     bool triggered_{false};
