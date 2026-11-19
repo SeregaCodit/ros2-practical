@@ -2,12 +2,15 @@
 
 #include <chrono>
 #include <memory>
+#include <mutex>
+#include <condition_variable>
+#include <cstdint>
+#include <thread>
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 
 #include "std_msgs/msg/bool.hpp"
-
 #include "system_interfaces/msg/arming_state.hpp"
 #include "system_interfaces/action/blink_led.hpp"
 
@@ -17,11 +20,18 @@ namespace blink_control{
 class ActionServer final : public rclcpp::Node
 {
 public:
-    ActionServer();
+    explicit ActionServer(
+        const rclcpp::NodeOptions & options = 
+            rclcpp::NodeOptions()
+    );
+
+    ~ActionServer() override;
+
 
 private:
     // STATE MACHINES
-    enum class FinishReason{
+    enum class StopReason{
+        NONE,
         SUCCESSED,
         CANCELED,
         ABORTED
@@ -40,15 +50,6 @@ private:
 
     rclcpp::TimerBase::SharedPtr timer_;
 
-    // internal state
-    std::shared_ptr<GoalHandle> active_goal_;
-
-    bool armed_{false};
-    bool gaol_reserved_{false};
-    bool line_active_{false};
-    uint32_t completed_cycles_{0};
-
-    std::chrono::steady_clock::time_point next_toggle_;
 
     // callbacks
     rclcpp_action::GoalResponse handle_goal(
@@ -64,13 +65,36 @@ private:
         std::shared_ptr<GoalHandle> goal_handle
     );
 
-    void handle_arming_state(
-        ArmingState::SharedPtr msg
+    void finish(
+        std::shared_ptr<GoalHandle> goal_handle,
+        StopReason reason,
+        std::uint32_t completed_cycles
     );
 
-    void tick();
-    void set_line();
-    void finish(FinishReason reason);
+    void execute(
+        std::shared_ptr<GoalHandle> goal_handle
+    );
+
+    void on_arming_state(const ArmingState msg);
+
+    // LED control
+    void set_line(const bool active);
+
+
+
+    // thread sychronisation
+    mutable std::mutex state_mutex_;
+    std::condition_variable wakeup_;
+    std::thread worker_;
+    
+
+    // internal state
+    std::shared_ptr<GoalHandle> active_goal_;
+    bool armed_{false};
+    bool busy_{false};
+    bool stopping_{false};
+    std::uint64_t disarm_epoch_{0};
+    std::uint64_t accepted_epoch_{0};   
 };
 
 } // blink_control
