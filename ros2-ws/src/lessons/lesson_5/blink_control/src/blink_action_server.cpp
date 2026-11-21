@@ -1,6 +1,9 @@
 #include <memory>
 #include <functional> 
 #include <exception>
+#include <algorithm>
+#include <system_error>
+#include <thread>
 
 #include "blink_control/blink_action_server.hpp"
 #include "blink_control/action_server_params.hpp"
@@ -18,17 +21,19 @@ ActionServer::ActionServer(
 {
     // params
     declare_parameter(keys::GPIO_LINE, defaults::GPIO_LINE);
+    const auto gpio_line = get_parameter(keys::GPIO_LINE).as_int();
+    const auto topic = "set_gpio" + std::to_string(gpio_line); 
 
     // topics
     gpio_line_pub_ = create_publisher<std_msgs::msg::Bool>(
-        "set_gpio_line",
+        topic,
         10
     );
 
     set_line(false);
 
     arming_state_sub_ = create_subscription<ArmingState>(
-        "arming_atste",
+        "arming_state",
         10,
         std::bind(&ActionServer::on_arming_state, this, _1)
     );
@@ -53,7 +58,6 @@ ActionServer::~ActionServer()
 
         stopping_ = true;
         armed_ = false;
-        ++disarm_epoch_;
 
         try{
             set_line(false);
@@ -96,9 +100,8 @@ ActionServer::handle_goal(
         return rclcpp_action::GoalResponse::REJECT;
     }
 
-    std::lock_guard<std::mutex> lock(state_mutex_);  // a k threadig.lock() ?
+    std::lock_guard<std::mutex> lock(state_mutex_); 
 
-    
     if (stopping_ || !armed_){
         RCLCPP_WARN(
             get_logger(),
@@ -108,7 +111,6 @@ ActionServer::handle_goal(
         return rclcpp_action::GoalResponse::REJECT;
 
     }
-
     
     if (busy_){
         RCLCPP_WARN(
@@ -126,6 +128,7 @@ ActionServer::handle_goal(
     );
 
     busy_ = true;
+    disarm_requested_ = false;
     
     RCLCPP_INFO(
         get_logger(),
@@ -171,14 +174,16 @@ void ActionServer::handle_accepted(std::shared_ptr<GoalHandle> goal_handle)
         previous.join();
     }
 
-    std::lock_guard<std::mutex> lock(state_mutex_);
-
     try{
-        worker_ = std::thread(
-            &ActionServer::execute,
-            this,
-            goal_handle
-        );
+        {
+            std::lock_guard<std::mutex> lock(state_mutex_);
+
+            worker_ = std::thread(
+                &ActionServer::execute,
+                this,
+                goal_handle
+            );
+        }
     } catch (const std::system_error & ex){
         RCLCPP_ERROR(
             get_logger(),
@@ -194,13 +199,168 @@ void ActionServer::handle_accepted(std::shared_ptr<GoalHandle> goal_handle)
 } 
 
 
+// EXECUTION
+void ActionServer::execute(
+    std::shared_ptr<GoalHandle> goal_handle
+)
+{
+    const auto goal = goal_handle->get_goal();
+    const auto half_period = 
+        std::chrono::milliseconds(goal->half_preiod_ms);
+
+    std::uint32_t completed_cycles = 0;
+
+    StopReason reason = StopReason::NONE;
+
+    RCLCPP_INFO(
+        get_logger(),
+        "Blink execution started. Goal: %d cycles",
+        goal->cycles
+    );
+
+    try{
+        for (
+            std::uint32_t i = 0;
+            i < goal->cycles;
+            ++i
+        ){
+            //check if we can continue executing action
+            
+            reason = interruption_reason(goal_handle);
+            
+            if (reason != StopReason::NONE){
+                break;
+            }
+            
+            // LED ON 
+            // must be under mutex if DISARMED will changed
+            // already before LED turning on
+            {
+                std::lock_guard<std::mutex> lock(state_mutex_);
+
+                if (!armed_ || stopping_ || !rclcpp::ok() || disarm_requested_) {
+                    reason = StopReason::ABORTED;
+                    break;
+
+                } else if (goal_handle->is_canceling()) {
+                    reason = StopReason::CANCELED;
+                    break;
+
+                } else {
+                    set_line(true);
+                }
+            }
+
+            // wait
+           reason = wait_interruptable(goal_handle, half_period);
+
+            if (reason != StopReason::NONE){
+                break;
+            }
+            
+            // LED OFF
+            // we don`t care about state like turning on case
+            set_line(false);
+
+            // wait
+            reason = wait_interruptable(goal_handle, half_period);
+
+            if (reason != StopReason::NONE){
+                break;
+            }
+
+            // feedback
+            auto feedback = std::make_shared<BlinkLed::Feedback>();
+
+            feedback->led_on = false;  
+            feedback->complited_cycles = ++completed_cycles;
+            goal_handle->publish_feedback(feedback);
+            
+            RCLCPP_DEBUG(
+                get_logger(),
+                "Completed %d/%d cycles",
+                completed_cycles, goal->cycles
+            );
+        } 
+        } catch (const std::exception & ex){
+            RCLCPP_ERROR(
+                get_logger(),
+                "Execution error:\n%s",
+                ex.what()
+            );
+
+            reason = StopReason::ABORTED;
+        }
+
+        finish(goal_handle, reason, completed_cycles);
+}
+
+
+// interruption
+ActionServer::StopReason
+ActionServer::wait_interruptable(
+    const std::shared_ptr<GoalHandle> & goal_handle,
+    const std::chrono::milliseconds period
+){
+    const auto deadline = std::chrono::steady_clock::now() + period;
+    const auto wakeup_period = 
+        std::chrono::milliseconds(defaults::WAKEUP_PERIOD_MS); 
+
+    while (true){ 
+        const auto reason = interruption_reason(goal_handle);
+        if (reason != StopReason::NONE){
+            return reason;
+        } 
+
+        auto now = std::chrono::steady_clock::now();
+        if (now >= deadline){
+            break;
+        }
+
+        auto next_wakeup = std::min(deadline, now + wakeup_period);
+        {
+            std::unique_lock<std::mutex> lock(state_mutex_);
+            wakeup_.wait_until(lock, next_wakeup);
+        }
+
+
+    }
+
+    return interruption_reason(goal_handle);
+}
+
+
+ActionServer::StopReason 
+ActionServer::interruption_reason(const std::shared_ptr<GoalHandle> & goal_handle){
+     if (goal_handle->is_canceling()){
+        return StopReason::CANCELED;
+    }
+
+    {   
+        std::lock_guard<std::mutex> lock(state_mutex_);
+
+        if (!armed_ ||
+            stopping_ ||
+            disarm_requested_
+        ){
+            return StopReason::ABORTED;
+        }
+    }
+
+    if(!rclcpp::ok()){
+        return StopReason::ABORTED;
+    }
+
+    return StopReason::NONE;
+}
+
 void ActionServer::finish(
     std::shared_ptr<GoalHandle> goal_handle,
     StopReason reason,
     std::uint32_t completed_cycles
 ){
 
-    // firstable set lune INACTIVE
+    // firstable set line INACTIVE
     try{
         set_line(false);
     } catch (std::exception & ex) {
@@ -213,11 +373,74 @@ void ActionServer::finish(
 
         reason = StopReason::ABORTED;
 
-    
     }
-}
 
-// INTERRUPTION
+
+    auto final_reason = interruption_reason(goal_handle);
+    
+    if (final_reason != StopReason::NONE){
+        reason = final_reason;
+    }
+
+    // PREPEARE RESULT
+    auto result = std::make_shared<BlinkLed::Result>();
+    result->complited_cycles = completed_cycles;
+    
+    bool finalized = false;
+
+    try{
+
+        if (goal_handle->is_canceling()){
+            goal_handle->canceled(result);
+
+            RCLCPP_INFO(
+                get_logger(),
+                "Goal CAMCELED. %d cycles completed",
+                completed_cycles
+            );
+        } else if (reason == StopReason::NONE) {
+            goal_handle->succeed(result);
+
+            RCLCPP_INFO(
+                get_logger(),
+                "Goal SUCCESSED. %d completed cycles",
+                completed_cycles
+            );
+        } else {
+            goal_handle->abort(result);
+
+            RCLCPP_WARN(
+                get_logger(),
+                "Goal ABORTED. %d completed cycles",
+                completed_cycles
+            );
+        }
+
+        finalized = true;
+    } catch (std::exception & ex){
+        RCLCPP_ERROR(
+            get_logger(),
+            "FINALIZATION ERROR: %s",
+            ex.what()
+        );
+    }
+
+
+    // Release execution slot.
+    {
+        std::lock_guard<std::mutex> lock(state_mutex_);
+
+        if(
+            finalized ||
+            stopping_ ||
+            !rclcpp::ok()
+        ){
+            busy_ = false;
+        }
+    }
+    
+    
+}
 
 
 // LINE CONTROL
@@ -228,18 +451,29 @@ void ActionServer::set_line(const bool active){
 }
 
 // sub
-void ActionServer::on_arming_state(const ArmingState msg){
-    armed_ = msg.state;
+void ActionServer::on_arming_state(const ArmingState & msg){
+    const bool new_state = msg.state == ArmingState::ARMED;
 
-    if (!armed_){
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    
+    if (armed_ && !new_state){
+        
+        if (busy_){
+            disarm_requested_ = true;
+        }
 
+        
+        RCLCPP_INFO(
+            get_logger(),
+            "System DISARMED!"
+        );
+        
         set_line(false);
-
-        // Wake the worker to recheck the ARM state.
         wakeup_.notify_all();
-
-        RCLCPP_INFO(get_logger(), "System DISARMED - Goal ABORTED!");
+        
     }
+    
+    armed_ = new_state;
 }
 
 } // namespace blink_control

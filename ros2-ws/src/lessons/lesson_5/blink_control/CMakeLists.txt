@@ -8,8 +8,35 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(system_interfaces REQUIRED)
+find_package(Threads REQUIRED)
+
+add_executable(blink_action_server
+  src/blink_action_server.cpp
+  src/blink_action_server_main.cpp
+)
+
+target_include_directories(blink_action_server
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(blink_action_server
+  rclcpp::rclcpp
+  rclcpp_action::rclcpp_action
+  std_msgs::std_msgs
+  system_interfaces::system_interfaces
+  Threads::Threads
+)
+
+INSTALL(
+  TARGETS blink_action_server
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

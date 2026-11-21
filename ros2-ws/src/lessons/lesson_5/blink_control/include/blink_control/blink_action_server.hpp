@@ -75,7 +75,14 @@ private:
         std::shared_ptr<GoalHandle> goal_handle
     );
 
-    void on_arming_state(const ArmingState msg);
+    void on_arming_state(const ArmingState & msg);
+
+    // interruption
+    StopReason interruption_reason(const std::shared_ptr<GoalHandle> & goal_handle);
+    StopReason wait_interruptable(
+        const std::shared_ptr<GoalHandle> & goal_handle,
+        const std::chrono::milliseconds period
+    );
 
     // LED control
     void set_line(const bool active);
@@ -93,8 +100,7 @@ private:
     bool armed_{false};
     bool busy_{false};
     bool stopping_{false};
-    std::uint64_t disarm_epoch_{0};
-    std::uint64_t accepted_epoch_{0};   
+    bool disarm_requested_{false};  
 };
 
 } // blink_control

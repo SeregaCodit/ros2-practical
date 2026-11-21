@@ -9,6 +9,7 @@ namespace defaults {
     inline constexpr int MAX_GOAL_CYCLES = 200;
     inline constexpr int MIN_HALF_PERIOD_MS = 25;
     inline constexpr int MAX_HALF_PERIOD_MS = 2000;
+    inline constexpr int WAKEUP_PERIOD_MS = 20;
 
 
 }
