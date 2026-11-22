@@ -13,7 +13,7 @@
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>launch</exec_depend> 
-  # nodes launched
+  # packages launched
   <exec_depend>gpio_driver</exec_depend>
   <exec_depend>ups_monitor</exec_depend>
   <exec_depend>button_long_press_adapter</exec_depend>
@@ -22,6 +22,7 @@
   <exec_depend>arming_manager</exec_depend>
   <exec_depend>led_arming_indication_controller</exec_depend>
   <exec_depend>tof_sensor</exec_depend>
+  <exec_depend>blink_control</exec_depend>
 
 
   <test_depend>ament_lint_auto</test_depend>

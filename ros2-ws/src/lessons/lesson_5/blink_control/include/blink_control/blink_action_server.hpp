@@ -48,8 +48,6 @@ private:
 
     rclcpp_action::Server<BlinkLed>::SharedPtr server_;
 
-    rclcpp::TimerBase::SharedPtr timer_;
-
 
     // callbacks
     rclcpp_action::GoalResponse handle_goal(
@@ -65,6 +63,7 @@ private:
         std::shared_ptr<GoalHandle> goal_handle
     );
 
+    // helping fucntions
     void finish(
         std::shared_ptr<GoalHandle> goal_handle,
         StopReason reason,
@@ -79,6 +78,7 @@ private:
 
     // interruption
     StopReason interruption_reason(const std::shared_ptr<GoalHandle> & goal_handle);
+    
     StopReason wait_interruptable(
         const std::shared_ptr<GoalHandle> & goal_handle,
         const std::chrono::milliseconds period
@@ -87,8 +87,6 @@ private:
     // LED control
     void set_line(const bool active);
 
-
-
     // thread sychronisation
     mutable std::mutex state_mutex_;
     std::condition_variable wakeup_;
@@ -96,7 +94,6 @@ private:
     
 
     // internal state
-    std::shared_ptr<GoalHandle> active_goal_;
     bool armed_{false};
     bool busy_{false};
     bool stopping_{false};
