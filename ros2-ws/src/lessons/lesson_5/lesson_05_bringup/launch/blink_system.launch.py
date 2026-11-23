@@ -9,6 +9,8 @@ from launch_ros.parameter_descriptions import ParameterValue
 def generate_launch_description():
     short_press_period = LaunchConfiguration("max_push_period_ms")
     blue_led_line = LaunchConfiguration("blue_led_line")
+    half_period_ms = LaunchConfiguration("half_period_ms")
+    action_cycles = LaunchConfiguration("action_cycles")
 
 
     return LaunchDescription([
@@ -17,6 +19,12 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "blue_led_line", default_value="23"
+        ),
+        DeclareLaunchArgument(
+            "half_period_ms", default_value="250"
+        ),
+        DeclareLaunchArgument(
+            "action_cycles", default_value="20"
         ),
 
         Node(
@@ -48,6 +56,18 @@ def generate_launch_description():
             name="blink_action_server",
             parameters=[{
                 "gpio_line": ParameterValue(blue_led_line, value_type=int)
+            }]
+        ),
+        Node(
+            package="blink_control",
+            executable="blink_action_client",
+            name="blink_action_client",
+            remappings=[
+                ("/button/short_single_press", "/short_press")
+            ],
+            parameters=[{
+                "cycles": ParameterValue(action_cycles, value_type=int),
+                "half_period_ms": ParameterValue(half_period_ms, value_type=int)
             }]
         )
     ])

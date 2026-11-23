@@ -6,7 +6,6 @@ namespace blink_control {
 
 using namespace std::placeholders;
 
-// constructor
 ActionClient::ActionClient(
     const rclcpp::NodeOptions & options
 )
@@ -26,6 +25,11 @@ ActionClient::ActionClient(
     client_ = rclcpp_action::create_client<BlinkLed>(
         this,
         "blink_led"
+    );
+
+    RCLCPP_INFO(
+        get_logger(),
+        "INITIALIZED"
     );
 }
 
@@ -69,7 +73,7 @@ void ActionClient::on_short_single_press(
 void ActionClient::send_goal(){
     // get and validate params
 
-    auto cycles = get_parameter(keys::CYCLES).as_int();
+    std::uint32_t cycles = get_parameter(keys::CYCLES).as_int();
     
     if (cycles <= 0)
     {
@@ -82,7 +86,7 @@ void ActionClient::send_goal(){
         return;
     }
     
-    auto half_period_ms = get_parameter(keys::HALF_PERIOD_MS).as_int();
+    std::uint32_t half_period_ms = get_parameter(keys::HALF_PERIOD_MS).as_int();
 
     if (half_period_ms < defaults::MIN_HALF_PERIOD_MS)
     {
@@ -184,22 +188,49 @@ void ActionClient::feedback_callback(
 void ActionClient::result_callback(
     const GoalHandle::WrappedResult & result
 ){
+
     switch (result.code)
     {
-    case rclcpp_action::ResultCode::SUCCEEDED:
-        state_ = State::IDLE;
+        case rclcpp_action::ResultCode::SUCCEEDED:
+            
+            RCLCPP_INFO(
+                get_logger(),
+                "SUCCEEDED %d cycles completed",
+                result.result->complited_cycles
+            );
 
-        RCLCPP_INFO(
-            get_logger(),
-            "SUCCEEDED Goal completed, ready to new goal"
-        );
-        break;
-    
-    // TODO
-    
-    default:
-        break;
+            break;
+
+        case rclcpp_action::ResultCode::CANCELED:
+
+            RCLCPP_INFO(
+                get_logger(),
+                "CANCELED %d cycles completed",
+                result.result->complited_cycles
+            );
+            break;
+
+        case rclcpp_action::ResultCode::ABORTED:
+            
+            RCLCPP_WARN(
+                get_logger(),
+                "ABORTED. %d cycles completed",
+                result.result->complited_cycles
+            );
+            
+            break;
+
+        default:
+            RCLCPP_ERROR(
+                get_logger(),
+                "UNKNOWN complete code. %d cycles completed",
+                result.result->complited_cycles
+            );
+            break;
     }
+
+    current_goal_.reset();
+    state_ = State::IDLE;
 }
 
 } // namespace blink_control

@@ -11,7 +11,7 @@ namespace defaults {
 }
 
 namespace keys{
-    inline const std::string HALF_PERIOD_MS = "hal_period_ms";
+    inline const std::string HALF_PERIOD_MS = "half_period_ms";
     inline const std::string CYCLES = "cycles";
 }
 

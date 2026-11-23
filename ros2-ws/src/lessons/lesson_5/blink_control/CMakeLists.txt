@@ -17,8 +17,17 @@ add_executable(blink_action_server
   src/blink_action_server.cpp
   src/blink_action_server_main.cpp
 )
+add_executable(blink_action_client
+  src/blink_action_client.cpp
+  src/blink_action_client_main.cpp
+)
 
 target_include_directories(blink_action_server
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+target_include_directories(blink_action_client
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
@@ -31,9 +40,15 @@ target_link_libraries(blink_action_server
   system_interfaces::system_interfaces
   Threads::Threads
 )
+target_link_libraries(blink_action_client
+  rclcpp::rclcpp
+  rclcpp_action::rclcpp_action
+  std_msgs::std_msgs
+  system_interfaces::system_interfaces
+)
 
 INSTALL(
-  TARGETS blink_action_server
+  TARGETS blink_action_server blink_action_client
   DESTINATION lib/${PROJECT_NAME}
 )
 
