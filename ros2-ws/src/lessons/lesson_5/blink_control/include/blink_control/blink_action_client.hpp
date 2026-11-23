@@ -36,24 +36,30 @@ private:
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr event_sub_;
     rclcpp_action::Client<BlinkLed>::SharedPtr client_;
 
-    // callbacks
+    // client callbacks
     void goal_response_callback(
-        std::shared_future<GoalHandle::SharedPtr> future
+        const GoalHandle::SharedPtr & goal_handle
     );
 
-    void feedback_calback(
-        GoalHandle::SharedPtr,
+    void feedback_callback(
+        GoalHandle::SharedPtr goal_handle,
         const std::shared_ptr<const BlinkLed::Feedback> feedback
     );
 
     void result_callback(
-        GoalHandle::WrappedResult & result
+        const GoalHandle::WrappedResult & result
     );
 
+    // topic callbacks
+    void on_short_single_press(const std_msgs::msg::Bool & msg);
+
+    // methods
     void send_goal();
+    void cancel_request();
 
     // internal states
     State state_{State::IDLE};
+    GoalHandle::SharedPtr current_goal_;
 
 }; // class ActionClient
 

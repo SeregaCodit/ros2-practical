@@ -10,15 +10,11 @@ namespace defaults {
     inline constexpr int MIN_HALF_PERIOD_MS = 25;
     inline constexpr int MAX_HALF_PERIOD_MS = 2000;
     inline constexpr int WAKEUP_PERIOD_MS = 20;
-
-
 }
 
 namespace keys{
     inline const std::string GPIO_LINE = "gpio_line";
     inline const std::string MAX_GOAL_CYCLES = "max_goal_cycles";
-
 }
 
 #endif
-
