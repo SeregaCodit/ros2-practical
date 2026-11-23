@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install -y \
     # ros-${ROS_DISTRO}-rqt \
     # ros-${ROS_DISTRO}-rqt-graph \
     # Foxglove Bridge (instead of RQt) may be commented out if using RQt instead
-    # ros-${ROS_DISTRO}-foxglove-bridge \ 
+    ros-${ROS_DISTRO}-foxglove-bridge \ 
     # gazebo
     # ros-${ROS_DISTRO}-ros-gz \
     # demo_nodes 

@@ -1,0 +1,11 @@
+# GOAL
+# one cycle is OFF->ON state change sequence
+uint32 cycles
+uint32 half_preiod_ms
+---
+# RESULT
+uint32 complited_cycles
+---
+# FEEDBACK
+uint32 complited_cycles
+bool led_on

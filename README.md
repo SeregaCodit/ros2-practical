@@ -39,12 +39,16 @@ Practical robotics course project.
 |6S LiPo battery, DC-DC stepdown | Power system operation with appropriate voltage transformation|
 ___
 
+### [RPI 4B GPIO pin layout](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html)
+![rpi4b_gpio_pin_layout](docs/attachments/images/rpi4b_gpio_pin_layout.png)
+
 
 ### notes from lessons 
 * [lesson02 - ros_graph packages pubsub foxglove_bridge](docs/lessons/lesson02_ros_graph_packages_pubsub.md)
 * [lesson03 - RPI pinout and voltage](docs/lessons/lesson03_rpi_pins.md)
 * [lesson04 - LED_buttons_GPIO_physical_nodes](docs/lessons/lesson04_led_buttons_gpio_physical_nodes.md)
 * [lesson5.1_messages_services](docs/lessons/lesson5.1_messages_services.md)
+* [lesson5.2_actions](docs/lessons/lesson5.2_actions.md)
 
 ___
 ## [troubleshooting](docs/troublesootings/troubleshooting.md)

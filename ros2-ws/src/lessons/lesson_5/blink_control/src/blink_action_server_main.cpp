@@ -1,0 +1,27 @@
+#include <memory>
+#include <iostream>
+
+#include "rclcpp/rclcpp.hpp"
+#include "blink_control/blink_action_server.hpp"
+
+int main(int argc, char ** argv)
+{
+    int result = 0;
+    rclcpp::init(argc, argv);
+
+    try{
+        auto node =
+            std::make_shared<blink_control::ActionServer>();
+
+        rclcpp::spin(node);
+    } catch (const std::exception & ex){
+        std::cerr << "Blink ActionServer error:"
+            << ex.what() << "\n";
+
+        result = 1;
+    }
+
+    rclcpp::shutdown();
+
+    return result;
+}

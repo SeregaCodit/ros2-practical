@@ -48,7 +48,7 @@ tof sensor is at 0x29 as expected.
 ![lesson5.1.drawio](../attachments/images/lesson5.1.drawio.png)
 
 # Interfaces
-after building  [safety_interfaces](../../ros2-ws/src/lessons/lesson_5.1/interfaces/safety_interfaces) package check them:
+after building  [safety_interfaces](../../ros2-ws/src/lessons/lesson_5/interfaces/safety_interfaces) package check them:
 <pre>
 ros@rpi:/ros2-ws$ ros2 interface list | grep safety_interfaces
 	safety_interfaces/msg/ArmDisarmDecision
@@ -108,7 +108,7 @@ safety_interfaces/ArmDisarmDecision decision
 ### **! NOTE**: 
 in this lesson we are not implement any parameter validation logic. We can make custom function and throw it to `add_pre_set_parameters_callback` for fallback, to `add_on_set_parameters_callback` for accepting or rejecting as callback but this is not a lesson topic at all. We loockup the  `generate_parameter_library` tool at next lessons.
 
-# [arm_disarm_manager](../../ros2-ws/src/lessons/lesson_5.1/controllers/arming_manager/src/arm_disarm_manager.cpp)
+# [arm_disarm_manager](../../ros2-ws/src/lessons/lesson_5/controllers/arming_manager/src/arm_disarm_manager.cpp)
 build and install package. Check node with exisiting [battery state publisher](../../ros2-ws/src/lessons/lesson_03/ups_monitor/ups_monitor/nodes/battery_publisher.py) and with syntetic msg that imitates a range sensor: 
 
 **terminal 1:**
@@ -282,7 +282,7 @@ as we can see еру sensor messures вшіефтсу with certain degree of var
 
 launching some nodes via `ros2 run` while running others within a `venv` envoirement is not very convenient. In general, launching individual nodes in separate terminals is no the best approach. Therefore, moving forward we will use **`Launch files`**
 
-with [launch file](../../../../../ros2-ws/src/lessons/lesson_5.1/hardware/sensors/range/tof_sensor/tof_sensor/launch/tof_sensor.launch.py) node launching becomes simple again:
+with [launch file](../../../../../ros2-ws/src/lessons/lesson_5/hardware/sensors/range/tof_sensor/tof_sensor/launch/tof_sensor.launch.py) node launching becomes simple again:
 
 
 	ros@ros2-pi:/ros2-ws$ ros2 launch tof_sensor tof_sensor.launch.py 
@@ -299,7 +299,7 @@ with [launch file](../../../../../ros2-ws/src/lessons/lesson_5.1/hardware/sensor
 
 we will reuse the [button_node](../../../../../ros2-ws/src/lessons/lesson_04/gpio_driver/src/button_node.cpp) from gpio_driver (lesson 4). This node simply broadcasts the button state at a frquency of 10 Hz and also reports each state change  individually. This is actually what we need.
 
-[button long press adapter](../../ros2-ws/src/lessons/lesson_5.1/adapters/button_long_press_adapter) handles holding the button for 3 seconds or more and publishes information about this event in separate topic, to witch the ArmController will be subscribed.
+[button long press adapter](../../ros2-ws/src/lessons/lesson_5/adapters/button_long_press_adapter) handles holding the button for 3 seconds or more and publishes information about this event in separate topic, to witch the ArmController will be subscribed.
 
 # Final result
 
@@ -309,7 +309,7 @@ as we can see our Graph in foxglove matches our diagram in DrawIO.
 
 # The Huge BUT
 
-Currently, to perform a simle operation - such as toggling an LED via long press of a button - we have to use 9 terminals. This is not very conveinement. Therefore, we will create a [bring-up package](../../../../../ros2-ws/src/lessons/lesson_5.1/lesson_05_1_bringup). However, we will examine bring-up files in more deatail in one of the upcoming lessons
+Currently, to perform a simle operation - such as toggling an LED via long press of a button - we have to use 9 terminals. This is not very conveinement. Therefore, we will create a [bring-up package](../../../../../ros2-ws/src/lessons/lesson_5/lesson_05_1_bringup). However, we will examine bring-up files in more deatail in one of the upcoming lessons
 
 Now we can run all nodes that using in the lesson via just one command
 
