@@ -45,19 +45,20 @@ void ActionClient::on_short_single_press(
     switch (state_)
     {
     case State::IDLE:
-        if (!client_->wait_for_action_server()){
+        if (!client_->action_server_is_ready()){
             RCLCPP_ERROR(
                 get_logger(),
-                "Blink Action Server not available after waiting!"
+                "Blink Action Server unavailable"
             );
             return;
         }
 
-        send_goal();
-        state_ = State::PENDING;
+        if (send_goal()){
+            state_ = State::PENDING;
+        }
+
         break;
     case State::PENDING:
-        cancel_request();
         state_ = State::CANCEL_REQUESTED;
         break;
     case State::ACTIVE:
@@ -70,43 +71,43 @@ void ActionClient::on_short_single_press(
 }
 
 
-void ActionClient::send_goal(){
+bool ActionClient::send_goal(){
     // get and validate params
 
-    std::uint32_t cycles = get_parameter(keys::CYCLES).as_int();
+    auto cycles = get_parameter(keys::CYCLES).as_int();
     
     if (cycles <= 0)
     {
         RCLCPP_ERROR(
             get_logger(),
-            "Cycles parameter must be greater than 0. Got %d",
+            "Cycles parameter must be greater than 0. Got %ld",
             cycles
         );
         
-        return;
+        return false;
     }
     
-    std::uint32_t half_period_ms = get_parameter(keys::HALF_PERIOD_MS).as_int();
+    auto half_period_ms = get_parameter(keys::HALF_PERIOD_MS).as_int();
 
     if (half_period_ms < defaults::MIN_HALF_PERIOD_MS)
     {
         RCLCPP_ERROR(
             get_logger(),
-            "half_period_ms parameter must be greater than %d. Got %d",
+            "half_period_ms parameter must be greater than %d. Got %ld",
             defaults::MIN_HALF_PERIOD_MS, half_period_ms
         );
         
-        return;
+        return false;
     }
     
     // goal
     auto goal_msg = BlinkLed::Goal();
-    goal_msg.cycles = cycles;
-    goal_msg.half_preiod_ms = half_period_ms;
+    goal_msg.cycles = std::int32_t(cycles);
+    goal_msg.half_preiod_ms = std::int32_t(half_period_ms);
 
     RCLCPP_INFO(
         get_logger(),
-        "Sending goal: cycles = %d, time_period_ms = %d",
+        "Sending goal: cycles = %ld, time_period_ms = %ld",
         cycles, half_period_ms
     );
 
@@ -120,6 +121,8 @@ void ActionClient::send_goal(){
         std::bind(&ActionClient::result_callback, this, _1);
 
     client_->async_send_goal(goal_msg, send_goal_options);
+
+    return true;
 }
 
 

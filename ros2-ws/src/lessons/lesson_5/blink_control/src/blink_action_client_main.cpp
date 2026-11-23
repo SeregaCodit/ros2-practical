@@ -9,7 +9,7 @@
 
 int main(int argc, char ** argv)
 {
-    int result = 1;
+    int result = 0;
     rclcpp::init(argc, argv);
 
     try{

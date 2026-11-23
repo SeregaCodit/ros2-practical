@@ -64,7 +64,7 @@ void ButtonShortPressAdapter::on_button_state(
     
     std_msgs::msg::Bool pub_msg;
 
-    // button fromt of realising
+    // button front of realising
     if (
         !msg->data
         && prev_state_
@@ -90,6 +90,7 @@ void ButtonShortPressAdapter::on_button_state(
         }
 
         triggered_ = true;
+        prev_state_ = msg->data;
         return;
     }
 

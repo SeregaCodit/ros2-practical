@@ -54,7 +54,7 @@ private:
     void on_short_single_press(const std_msgs::msg::Bool & msg);
 
     // methods
-    void send_goal();
+    bool send_goal();
     void cancel_request();
 
     // internal states
