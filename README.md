@@ -49,6 +49,6 @@ ___
 * [lesson04 - LED_buttons_GPIO_physical_nodes](docs/lessons/lesson04_led_buttons_gpio_physical_nodes.md)
 * [lesson5.1_messages_services](docs/lessons/lesson5.1_messages_services.md)
 * [lesson5.2_actions](docs/lessons/lesson5.2_actions.md)
-
+* [lesson06_params_launch_yaml_namespaces_qos](docs/lessons/lesson06_params_launch_yaml_namespaces_qos.md)
 ___
 ## [troubleshooting](docs/troublesootings/troubleshooting.md)
