@@ -3,6 +3,7 @@
 #include <std_msgs/msg/bool.hpp>
 
 #include <course_utils/debouncer.hpp>
+#include "gpio_driver/button_parameters.hpp"
 
 #include <iostream>
 #include <memory>
@@ -19,16 +20,20 @@ public:
 
     ButtonNode() 
     :   Node("button_node"),
+        param_listener_{
+            std::make_shared<button_params::ParamListener>(
+                get_node_parameters_interface()
+            )
+        },
+        params_{param_listener_->get_params()},
         debouncer_{
             Debouncer::Duration{
-                declare_parameter<int>("debounce_ms", 30)
+                params_.debounce_ms
             }
         }
     {
-        const auto chip_path = declare_parameter<std::string>(
-            "chip", "/dev/gpiochip0"
-        );
-        line_ = declare_parameter<int>("line", 17);
+        const auto chip_path = params_.chip;
+        line_ = params_.line;
 
         gpiod::chip chip(chip_path);
 
@@ -78,13 +83,20 @@ private:
             );
         }
     }
-
-    Debouncer debouncer_;
-    int line_;
+    
+    //parameters
+    std::shared_ptr<button_params::ParamListener> param_listener_;
+    button_params::Params params_;
+    
+    // ros interfaces
     std::unique_ptr<gpiod::line_request> request_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr publisher_;
     rclcpp::TimerBase::SharedPtr sample_timer_;
     rclcpp::TimerBase::SharedPtr publish_timer_;
+
+    //internal state
+    Debouncer debouncer_;
+    int line_;
 };
 
 

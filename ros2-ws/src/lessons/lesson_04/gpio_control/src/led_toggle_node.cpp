@@ -5,6 +5,8 @@
 #include <string>
 #include <iostream>
 
+#include "gpio_control/gpio_control_params.hpp"
+
 using namespace std::chrono_literals;
 
 using Clock = std::chrono::steady_clock;
@@ -15,15 +17,14 @@ public:
     LedToggle()
     : Node("led_toggle_node")
     {
+        param_listener_ = 
+            std::make_shared<led_toggle::ParamListener>(
+                get_node_parameters_interface()
+            );
+        
+        params_ = param_listener_->get_params();
 
-        // set up failsafe signal timeout
-        const auto timeout_ms = declare_parameter<int64_t>("timeout_ms", 2000);
-
-        if (timeout_ms <= 0){
-            throw std::invalid_argument("failsage tiomout must be greater than 0");
-        };
-
-        timeout_ = std::chrono::milliseconds{timeout_ms};
+        timeout_ = std::chrono::milliseconds{params_.timeout_ms};
 
 
         subscription_ = create_subscription<std_msgs::msg::Bool>(
@@ -90,9 +91,15 @@ public:
     }
 
 private:
+    // params
+    std::shared_ptr<led_toggle::ParamListener> param_listener_;
+    led_toggle::Params params_;
+
+    //ros interfaces
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr subscription_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr publisher_;
     
+    // internal state
     rclcpp::TimerBase::SharedPtr publish_timer_;
 
     bool prev_state_{false};

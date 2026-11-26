@@ -10,12 +10,19 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(course_utils REQUIRED)
+find_package(generate_parameter_library REQUIRED)
+
+
 
 # External dependencies
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GPIOD_CXX REQUIRED IMPORTED_TARGET libgpiodcxx)
 
 # ====== led_node ======
+generate_parameter_library(led_parameters
+  params/led_params.yaml
+)
+
 add_executable(led_node src/led_node.cpp)
 
 # Link dependencies
@@ -23,15 +30,21 @@ target_link_libraries(led_node PRIVATE
   rclcpp::rclcpp
   std_msgs::std_msgs
   PkgConfig::GPIOD_CXX
+  led_parameters
 )
 
 # ====== button_node ======
+generate_parameter_library(button_parameters
+  params/button_params.yaml
+)
+
 add_executable(button_node src/button_node.cpp)
 target_link_libraries(button_node PRIVATE
   rclcpp::rclcpp
   std_msgs::std_msgs
   PkgConfig::GPIOD_CXX
   course_utils::course_utils
+  button_parameters
 )
 
 

@@ -9,6 +9,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(generate_parameter_library REQUIRED)
+
+generate_parameter_library(gpio_control_params
+  params/gpio_control_params.yaml
+)
+
 
 add_executable(led_toggle src/led_toggle_node.cpp)
 
@@ -16,6 +22,7 @@ target_link_libraries(led_toggle
   PRIVATE
     rclcpp::rclcpp
     std_msgs::std_msgs 
+    gpio_control_params
 )
 
 INSTALL(

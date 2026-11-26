@@ -1,0 +1,23 @@
+button_params:
+  chip:
+    type: string
+    default_value: "/dev/gpiochip0"
+    description: "a patht to the gpiochip"
+    additional_constraints: "use gpiodetect"
+    read_only: true
+    validation:
+      not_empty<>: []
+  line:
+    type: int
+    default_value: 17
+    description: "GPIO line at gpiochip (BCM)"
+    read_only: true
+    validation:
+      bounds<>: [0, 27] # signal lines of RPI gpiochip 0
+  debounce_ms:
+    type: int
+    default_value: 30
+    description: "debouncing button time in milliseconds"
+    read_only: true
+    validation:
+      bounds<>: [10, 50]
