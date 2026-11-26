@@ -9,13 +9,23 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(generate_parameter_library REQUIRED)
 
-add_executable(cpu_temperature_alarm_notificator src/cpu_temperature_alarm_notificator.cpp)
+
+generate_parameter_library(cpu_temperature_alarm_params
+  params/cpu_temperature_alarm_params.yaml
+)
+
+add_executable(cpu_temperature_alarm_notificator 
+  src/cpu_temperature_alarm_notificator.cpp
+)
+
 
 target_link_libraries(cpu_temperature_alarm_notificator
   PRIVATE
     rclcpp::rclcpp
     sensor_msgs::sensor_msgs
+    cpu_temperature_alarm_params
 )
 
 INSTALL(
