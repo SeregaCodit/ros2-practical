@@ -13,7 +13,7 @@
 #include "std_msgs/msg/bool.hpp"
 #include "system_interfaces/msg/arming_state.hpp"
 #include "system_interfaces/action/blink_led.hpp"
-
+#include "blink_control/action_server_params.hpp"
 
 namespace blink_control{
 
@@ -36,6 +36,9 @@ private:
         CANCELED,
         ABORTED
     };
+    // params
+    std::shared_ptr<action_server_parameters::ParamListener> param_listener_;
+    action_server_parameters::Params params_;
 
     // TYPES
     using BlinkLed = system_interfaces::action::BlinkLed;

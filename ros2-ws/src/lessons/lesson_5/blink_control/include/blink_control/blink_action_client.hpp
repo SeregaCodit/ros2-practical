@@ -9,6 +9,8 @@
 #include "std_msgs/msg/bool.hpp"
 #include "system_interfaces/action/blink_led.hpp"
 
+#include "blink_control/action_client_params.hpp"
+
 namespace blink_control{
 
 class ActionClient final : public rclcpp::Node
@@ -27,6 +29,9 @@ private:
         ACTIVE,
         CANCEL_REQUESTED
     };
+
+    // PARAMS
+    std::shared_ptr<action_client_parameters::ParamListener> param_listener_;
 
     // TYPES
     using BlinkLed = system_interfaces::action::BlinkLed;

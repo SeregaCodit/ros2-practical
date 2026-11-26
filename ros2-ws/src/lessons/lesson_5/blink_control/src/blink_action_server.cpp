@@ -6,7 +6,7 @@
 #include <thread>
 
 #include "blink_control/blink_action_server.hpp"
-#include "blink_control/action_server_params.hpp"
+#include "blink_control/action_server_defaults.hpp"
 
 
 namespace blink_control{
@@ -20,8 +20,14 @@ ActionServer::ActionServer(
 : Node("blink_action_server", options)
 {
     // params
-    declare_parameter(keys::GPIO_LINE, defaults::GPIO_LINE);
-    const auto gpio_line = get_parameter(keys::GPIO_LINE).as_int();
+    param_listener_ =
+        std::make_shared<action_server_parameters::ParamListener>(
+            get_node_parameters_interface()
+        );
+    params_ = param_listener_->get_params();
+
+    const auto gpio_line = params_.line;
+    
     const auto topic = "set_gpio" + std::to_string(gpio_line); 
 
     // topics

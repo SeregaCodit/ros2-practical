@@ -1,0 +1,15 @@
+action_client_parameters:
+  cycles:
+    type: int
+    default_value: 20
+    description: "One cycle is LED ON-OFF sequece"
+    read_only: false
+    validation:
+      bounds<>: [1, 200]
+  half_period_ms:
+    type: int
+    default_value: 250
+    description: "Period of waiting to change LED state in milliseconds"
+    read_only: false
+    validation:
+      bounds<>: [250, 5000]
