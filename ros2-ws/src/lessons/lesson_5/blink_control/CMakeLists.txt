@@ -19,7 +19,7 @@ generate_parameter_library(action_server_params
 )
 
 generate_parameter_library(action_client_params
-  params/action_client_params.yaml
+  tof_sensor/action_client_params.yaml
 )
 
 add_executable(blink_action_server

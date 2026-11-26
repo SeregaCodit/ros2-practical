@@ -1,14 +1,14 @@
 #include "button_short_press_adapter/button_short_press_adapter.hpp"
-#include "button_short_press_adapter/params.hpp"
 
 
 ButtonShortPressAdapter::ButtonShortPressAdapter()
 : Node("button_short_press_adapter")
 {
-    declare_parameter(
-        keys::MAX_PUSH_PERIOD_MS,
-        defaults::MAX_PUSH_PERIOD_MS
+    param_listener_=
+    std::make_shared<short_press_adapter_parameters::ParamListener>(
+        get_node_parameters_interface()
     );
+    params_ = param_listener_->get_params();
 
     button_sub_ = create_subscription<std_msgs::msg::Bool>(
         "button_state_topic",
@@ -51,13 +51,7 @@ void ButtonShortPressAdapter::on_button_state(
     }
 
     // means button is pushed now
-    const auto push_preiod_ms = get_parameter(
-        keys::MAX_PUSH_PERIOD_MS
-    ).as_int();
-
-    if (push_preiod_ms <= 0){
-        throw std::invalid_argument("push_preiod_ms must be > 0");
-    }
+    const auto push_preiod_ms = params_.hold_period_ms;
 
     const auto push_preiod = std::chrono::milliseconds(push_preiod_ms);
     const auto ellapsed = Clock::now() - button_pressed_at_;

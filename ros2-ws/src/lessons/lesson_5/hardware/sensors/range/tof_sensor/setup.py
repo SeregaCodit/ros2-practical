@@ -2,6 +2,12 @@ import os
 
 from glob import glob
 from setuptools import find_packages, setup
+from generate_parameter_library_py.setup_helper import generate_parameter_module
+
+generate_parameter_module(
+    "tof_sensor_params",
+    "tof_sensor/tof_sensor_params.yaml"
+)
 
 package_name = 'tof_sensor'
 

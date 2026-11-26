@@ -7,7 +7,7 @@
 
 #include "system_interfaces/msg/arming_state.hpp"
 
-#include "led_indication_controller/params.hpp"
+#include "led_arming_indication_controller/led_indication_params.hpp"
 
 using ArmingState = system_interfaces::msg::ArmingState;
 using Bool = std_msgs::msg::Bool;
@@ -20,7 +20,12 @@ public:
     : Node("led_arming_indication_controller")
     {   
 
-        declare_parameter<int64_t>(keys::STATE_PUB_MS, defaults::STATE_PUB_MS);
+        param_listener_ =
+            std::make_shared<led_indication_parameters::ParamListener>(
+                get_node_parameters_interface()
+            );
+        
+        const auto params = param_listener_->get_params();
 
         state_subscription_ = create_subscription<ArmingState>(
             "state_publisher",
@@ -50,7 +55,7 @@ public:
 
         timer_ = create_wall_timer(
             std::chrono::milliseconds(
-                get_parameter(keys::STATE_PUB_MS).as_int()
+                params.state_pub_ms
             ),
             [this](){ publish_gpio_states(); }
         );
@@ -86,6 +91,7 @@ private:
         gpio22_publisher_->publish(gpio22_msg);
         gpio27_publisher_->publish(gpio27_msg);
     }
+    std::shared_ptr<led_indication_parameters::ParamListener> param_listener_;
 
     ArmingState state_;
     rclcpp::Subscription<ArmingState>::SharedPtr state_subscription_;

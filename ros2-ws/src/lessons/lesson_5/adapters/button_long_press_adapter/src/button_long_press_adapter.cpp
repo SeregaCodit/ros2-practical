@@ -1,7 +1,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 
-#include "button_long_press_adapter/params.hpp"
+#include "button_long_press_adapter/button_long_press_adapter_params.hpp"
 
 #include <memory>
 #include <chrono>
@@ -19,17 +19,21 @@ public:
     ButtonLongPressAdapter()
     : Node("button_long_press_adapter")
     {
-        declare_parameter(keys::PUSH_PERIOD_MS, defaults::PUSH_PERIOD_MS);
-
+        params_listener_=
+        std::make_shared<long_press_adapter_parameters::ParamListener>(
+            get_node_parameters_interface()
+        );
+        params_ = params_listener_->get_params();
+        
+        
         button_sub_ = create_subscription<std_msgs::msg::Bool>(
             "button_state_topic",
             rclcpp::QoS(10),
             [this](const std_msgs::msg::Bool::SharedPtr msg){
 
                 const auto elapsed = Clock::now() - button_pressed_at; 
-                const auto push_period_ms = std::chrono::milliseconds(
-                    get_parameter(keys::PUSH_PERIOD_MS
-                ).as_int());
+                const auto hold_period_ms = 
+                    std::chrono::milliseconds(params_.hold_period_ms);
                 
                  // front of button pushing
                 if (
@@ -46,7 +50,7 @@ public:
                 if ( 
                     !msg->data
                     && prev_state_
-                    && elapsed < push_period_ms
+                    && elapsed < hold_period_ms
                 ){
                     prev_state_ = msg->data;
                     RCLCPP_INFO(get_logger(), "Button realised to early: %f s",
@@ -58,7 +62,7 @@ public:
                 if (msg->data  
                     && prev_state_
                     && !triggered_
-                    && elapsed  >= push_period_ms
+                    && elapsed  >= hold_period_ms
                 ){
                     // publish long_press is true
                     RCLCPP_INFO(get_logger(),
@@ -87,8 +91,15 @@ public:
     }
 
 private:
+    //params
+    std::shared_ptr<long_press_adapter_parameters::ParamListener> params_listener_;
+    long_press_adapter_parameters::Params params_;
+
+    // ros interfaces
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr button_sub_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr long_press_publisher_;
+
+    // internal state
     Clock::time_point button_pressed_at{};
     bool prev_state_{false};
     bool triggered_{false};

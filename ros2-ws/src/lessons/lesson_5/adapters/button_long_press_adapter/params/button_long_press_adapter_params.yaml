@@ -1,0 +1,8 @@
+long_press_adapter_parameters:
+  hold_period_ms:
+    type: int
+    default_value: 3000
+    description: "Duration for holding the button to trigger the adapter"
+    read_only: true
+    validation:
+      bounds<>: [1000, 5000]

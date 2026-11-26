@@ -1,0 +1,8 @@
+arm_controller_parameters:
+  state_pub_ms:
+    type: int
+    default_value: 100
+    description: "State publishing period, milliseconds. Default 100"
+    read_only: true
+    validation:
+      bounds<>: [50, 1000]

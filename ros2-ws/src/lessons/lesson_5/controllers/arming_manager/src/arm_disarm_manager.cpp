@@ -15,8 +15,7 @@
 #include "safety_interfaces/srv/accept_arm_disarm.hpp"
 #include "system_interfaces/msg/arming_state.hpp"
 
-#include "arming_manager/params.hpp"
-
+#include "arming_manager/arming_manager_params.hpp"
 
 using ArmDisarmDecision = safety_interfaces::msg::ArmDisarmDecision;
 using AcceptArmDisarm = safety_interfaces::srv::AcceptArmDisarm;
@@ -37,14 +36,12 @@ public:
     : Node ("arm_disarm_manager")
     {   
 
-        // sensors heartbeat
-        declare_parameter<int64_t>(keys::HEARTBEAT_TIMEOUT_MS,
-             defaults::MIN_HEARTBEAT_TIMEOUT);
+        param_listener_ =
+            std::make_shared<arming_manager_parameters::ParamListener>(
+                get_node_parameters_interface()
+            );
 
-
-        //battery
-        declare_parameter<double>(keys::MIN_ARM_VOLTAGE_V,
-             defaults::MIN_ARM_VOLTAGE);
+        params_ = param_listener_->get_params();
 
         battery_state_sub_ = create_subscription<BatteryState>(
             "battery_state_topic", // define real name with remapping
@@ -55,10 +52,6 @@ public:
                 has_battery_state_ = true;
             }
         );
-        
-        // Range
-        declare_parameter<double>(keys::MIN_OBSTACLE_DIST_M,
-            defaults::MIN_OBSTACLE_DIST_M);
 
         range_sensor_sub_ = create_subscription<Range>(
             "range_sensor_topic",
@@ -97,7 +90,7 @@ private:
         const auto age = now() - stamp;  // stamp in nanoseconds 
 
         // cast from int64_t to std::chrono::milliseconds
-        auto hb_timeout = Duration{get_parameter(keys::HEARTBEAT_TIMEOUT_MS).as_int()};
+        auto hb_timeout = Duration{params_.heartbeat_timeout_ms};
         
         // than cast to rclcpp::Duration
         const rclcpp::Duration timeout(hb_timeout);
@@ -139,7 +132,7 @@ private:
             return ArmDisarmDecision::UPS_INVALID;
         }
 
-        auto min_arm_voltage = get_parameter(keys::MIN_ARM_VOLTAGE_V).as_double();
+        auto min_arm_voltage = params_.min_arm_voltage_v;
         if (min_arm_voltage > msg.voltage){
             RCLCPP_ERROR(get_logger(),
                 "battery voltage is lower safe thrashold. Got %f, threshold %f",
@@ -186,7 +179,7 @@ private:
             return ArmDisarmDecision::RANGE_SENSOR_INVALID;
         }
 
-        auto min_dist = get_parameter(keys::MIN_OBSTACLE_DIST_M).as_double();
+        auto min_dist = params_.min_obstacle_dist_m;
         if (min_dist > msg.range){
             RCLCPP_ERROR(get_logger(), 
                 "obstacle is too close (%f) m. Min: %f",
@@ -257,10 +250,11 @@ private:
             
     };
 
+    std::shared_ptr<arming_manager_parameters::ParamListener> param_listener_;
+    arming_manager_parameters::Params params_;
 
     BatteryState battery_state_msg_;
     Range range_sensor_msg_;
-    // ArmingState current_arm_state_{};
     ArmDisarmDecision current_arm_decision_{};
 
     bool has_battery_state_{false};

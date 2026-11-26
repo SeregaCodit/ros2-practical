@@ -13,6 +13,7 @@
 #include "system_interfaces/msg/arming_state.hpp"
 
 #include "arm_controller/params.hpp"
+#include "arm_controller/arm_controller_params.hpp"
 
 
 using ArmingState = system_interfaces::msg::ArmingState;
@@ -26,20 +27,12 @@ public:
     ArmController()
     : Node("arm_controller")
     {   
-        
-        declare_parameter<int64_t>(
-            keys::STATE_PUB_MS,
-            defaults::STATE_PUB_MS
-        );
-        const auto state_pub_ms = get_parameter(
-            keys::STATE_PUB_MS
-        ).as_int();
-
-        if (state_pub_ms <= 0){
-            throw std::invalid_argument(
-                "state_pub_ms must be >= 0"
+        param_listener_ = 
+            std::make_shared<arm_controller_parameters::ParamListener>(
+                get_node_parameters_interface()
             );
-        }
+        
+        const auto params = param_listener_->get_params();
 
         state_.stamp = now();
         state_.revision = 0;
@@ -74,7 +67,7 @@ public:
         );
 
         arming_state_pub_timer_ = create_wall_timer(
-            std::chrono::milliseconds(state_pub_ms),
+            std::chrono::milliseconds(params.state_pub_ms),
             [this](){
                 arming_state_pub_->publish(state_);
             }
@@ -223,7 +216,7 @@ private:
 
         }
     }
-
+    std::shared_ptr<arm_controller_parameters::ParamListener> param_listener_;
 
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr toggle_state_sub_;
 

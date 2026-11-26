@@ -10,6 +10,11 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(system_interfaces REQUIRED)
+find_package(generate_parameter_library REQUIRED)
+
+generate_parameter_library(led_indication_params
+  params/led_indication_params.yaml
+)
 
 add_executable(arming_indication_controller src/led_arming_indication_controller.cpp)
 
@@ -22,6 +27,7 @@ target_link_libraries(arming_indication_controller
     rclcpp::rclcpp
     std_msgs::std_msgs
     system_interfaces::system_interfaces
+    led_indication_params
 )
 
 INSTALL(
