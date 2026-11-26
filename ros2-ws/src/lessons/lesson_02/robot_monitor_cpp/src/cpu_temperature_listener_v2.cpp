@@ -11,7 +11,7 @@ public:
     : Node("cpu_temperature_listener_v2")
     {
         subscription_ = this->create_subscription<sensor_msgs::msg::Temperature>(
-            "/robot/diagnostics/cpu_temperature",
+            "cpu_temperature",
             rclcpp::QoS(10),
             [this](sensor_msgs::msg::Temperature::ConstSharedPtr msg)
             {

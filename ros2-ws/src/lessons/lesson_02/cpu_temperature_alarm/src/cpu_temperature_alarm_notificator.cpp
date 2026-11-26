@@ -33,7 +33,7 @@ public:
         }
         
         subscription_ = this->create_subscription<sensor_msgs::msg::Temperature>(
-            "/robot/diagnostics/cpu_temperature",
+            "cpu_temperature",
             rclcpp::QoS(10),
             std::bind(&CpuTemperatureAlarmNotificator::callback, this, _1)
         );
