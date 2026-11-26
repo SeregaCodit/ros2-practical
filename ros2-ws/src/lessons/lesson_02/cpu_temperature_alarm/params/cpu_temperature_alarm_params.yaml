@@ -12,5 +12,6 @@ cpu_temperature_alarm_notificator:
     default_value: 75.0
     description: "CPU temperature warning threshold"
     additional_constraints: "Must be <= safe_temperature_c"
+    read_only: true
     validation:
       bounds<>: [0.0, 100.0 ]
