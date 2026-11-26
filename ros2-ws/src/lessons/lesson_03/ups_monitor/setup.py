@@ -1,4 +1,10 @@
 from setuptools import find_packages, setup
+from generate_parameter_library_py.setup_helper import generate_parameter_module
+
+generate_parameter_module(
+    "Battery_voltage_monitor_params",
+    "ups_monitor/core/yaml_schemas/battery_voltage_monitor_params.yaml"
+)
 
 package_name = 'ups_monitor'
 
