@@ -25,5 +25,31 @@ add `generate_parameter_library` to `apt install` commnd in dockerfile - [commit
 |04|few nodes in one package with general parameter| [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/66f12dc6d4af3d1c03858c34cd43e1c0479d2950)|
 |05 blink_control|runtime parameters update in action client | [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/fdf6bdbb9b2b87b42e6eb71187553e5616a15005)|
 |05|other same param refactoring in lesson 5 files| [commit](https://github.com/SeregaCodit/ros2-practical/commit/0df0459b9d1366dbd17456b4de1217ec8c5a50ff)|
-|
 
+# YAML-configurations and Launch
+### YAML-configuration files are override values from YAML-parameter chemas if validation is successeful.
+
+
+
+| Feature | YAML Schema | YAML Configuration |
+| :--- | :--- | :--- |
+| **Purpose** | Node parameter contract | Node instance configuration |
+| **Parameter types** | Yes | No, not declared separately |
+| **Default values** | Yes | No |
+| **Validation rules** | Yes | No |
+| **Specific parameter values** | Default values | Override values |
+| **C++ code generation** | Yes | No |
+| **Usage** | Build time + generated code at runtime | Runtime |
+| **Rebuild after changes** | Yes | Usually no if use `--symlink-install` |
+
+
+create launch package:
+```bash
+ros2 pkg create robot_bringup --build_type ament_cmake --license Apache-2.0
+```
+
+
+
+|lesson|case|commit changes|
+|------|----|--------------|
+|02| + config file<br> + launch for node with config file<br>+ general launch for nodes and launch with included launch parameter support| [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/5eaf14d117bd7dd40c5f713baa57d29257cdddf2)

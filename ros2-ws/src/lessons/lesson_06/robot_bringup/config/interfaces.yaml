@@ -1,0 +1,13 @@
+# BUTTON
+/**/interfaces/adapters/button/long_press_adapter:
+  ros__parameters:
+    hold_period_ms: 3000 # semanticly min period
+
+/**/interfaces/adapters/button/short_press_adapter:
+  ros__parameters:
+    hold_period_ms: 500  # semanticly max period
+
+#LED
+/**/interfaces/controllers/led_arm_disarm_indication_controller:
+  ros__parameters:
+    state_pub_ms: 100

@@ -1,0 +1,9 @@
+/**/safety/arm_disarm/arming_manager:
+  ros__parameters:
+    heartbeat_timeout_ms: 2000 # single for all sensor msgs
+    min_arm_voltage_v: 7.2
+    min_obstacle_dist_m: 0.3
+  
+/**/safety/arm_disarm/arm_controller:
+  ros__parameters:
+    state_pub_ms: 100
