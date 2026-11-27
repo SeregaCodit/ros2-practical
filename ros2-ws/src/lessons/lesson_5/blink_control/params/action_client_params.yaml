@@ -12,4 +12,4 @@ action_client_parameters:
     description: "Period of waiting to change LED state in milliseconds"
     read_only: false
     validation:
-      bounds<>: [250, 5000]
+      bounds<>: [50, 5000]
