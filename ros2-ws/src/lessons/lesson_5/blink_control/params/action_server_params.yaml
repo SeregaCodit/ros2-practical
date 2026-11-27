@@ -1,8 +1,0 @@
-action_server_parameters:
-  line:
-    type: int
-    default_value: 23
-    description: "GPIO line at gpiochip (BCM)"
-    read_only: true
-    validation:
-      bounds<>: [0, 27] # signal lines of RPI gpiochip 0

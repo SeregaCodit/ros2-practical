@@ -18,7 +18,7 @@ ActionClient::ActionClient(
 
     // interfaces
     event_sub_ = create_subscription<std_msgs::msg::Bool>(
-        "button/short_single_press",
+        "trigger_topic",
         10,
         std::bind(&ActionClient::on_short_single_press, this, _1)
     );

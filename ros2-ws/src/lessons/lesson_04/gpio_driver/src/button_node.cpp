@@ -48,7 +48,7 @@ public:
                 ).do_request());
 
         publisher_ = create_publisher<std_msgs::msg::Bool>(
-            "/hardware/button/pressed",
+            "button_state",
             rclcpp::QoS(10)
         );
 

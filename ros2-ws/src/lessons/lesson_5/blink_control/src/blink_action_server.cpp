@@ -12,27 +12,17 @@
 namespace blink_control{
 
 using namespace std::placeholders;
-// using namespace std::chrono_literals;
+
 
 ActionServer::ActionServer(
     const rclcpp::NodeOptions & options
 )
 : Node("blink_action_server", options)
 {
-    // params
-    param_listener_ =
-        std::make_shared<action_server_parameters::ParamListener>(
-            get_node_parameters_interface()
-        );
-    params_ = param_listener_->get_params();
-
-    const auto gpio_line = params_.line;
-    
-    const auto topic = "set_gpio" + std::to_string(gpio_line); 
 
     // topics
     gpio_line_pub_ = create_publisher<std_msgs::msg::Bool>(
-        topic,
+        "set_gpio23",
         10
     );
 

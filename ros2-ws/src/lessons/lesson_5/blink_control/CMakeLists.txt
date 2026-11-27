@@ -14,12 +14,8 @@ find_package(system_interfaces REQUIRED)
 find_package(Threads REQUIRED)
 find_package(generate_parameter_library REQUIRED)
 
-generate_parameter_library(action_server_params
-  params/action_server_params.yaml
-)
-
 generate_parameter_library(action_client_params
-  tof_sensor/action_client_params.yaml
+  params/action_client_params.yaml
 )
 
 add_executable(blink_action_server
@@ -48,7 +44,6 @@ target_link_libraries(blink_action_server
   std_msgs::std_msgs
   system_interfaces::system_interfaces
   Threads::Threads
-  action_server_params
 )
 target_link_libraries(blink_action_client
   rclcpp::rclcpp

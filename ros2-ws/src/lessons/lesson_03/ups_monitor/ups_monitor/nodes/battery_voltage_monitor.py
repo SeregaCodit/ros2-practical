@@ -12,7 +12,7 @@ from ..infrastructure.liion_18650 import LiIon18650
 from ..infrastructure.Battery_voltage_monitor_params import battery_voltage_monitor
 
 
-TOPIC_NAME = "/robot/diagnostics/ups_battery_state"
+TOPIC_NAME = "ups_battery_state"
 
 
 class BatteryVoltageMonitor(Node):
