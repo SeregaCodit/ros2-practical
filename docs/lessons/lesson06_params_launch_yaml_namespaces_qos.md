@@ -79,7 +79,7 @@ ament_python_install_package(${PROJECT_NAME})
 ```
 Build. Install source.
 
-**robot_bringup v1** [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/ddaf8259d0ebdcf3ec2eff74e3b79f4a2996aeb3). But a have to repeat myseld by creating the same topic names in different launch files/ It's easy to make mestake, so I need single source of topic names
+**robot_bringup v1** [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/ddaf8259d0ebdcf3ec2eff74e3b79f4a2996aeb3). But a have to repeat myseld by creating the same topic names in different launch files/ It's easy to make mestake, so I need single source of graph names - [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/edde10113b6123a4b66bd4ee52f8fb93ca0bec86)
 
 
 |lesson|case|commit changes|
