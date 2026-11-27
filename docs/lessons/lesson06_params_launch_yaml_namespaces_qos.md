@@ -42,7 +42,7 @@ add `generate_parameter_library` to `apt install` commnd in dockerfile - [commit
 | **Usage** | Build time + generated code at runtime | Runtime |
 | **Rebuild after changes** | Yes | Usually no if use `--symlink-install` |
 
-Firstable refactor all topic names from absolute and dynamic (like `set_gpio23` in action server) to relative: [this commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/7cf8336e4a508b6d51be4a6c757a95f96e1e0a2b) and 
+Firstable refactor all topic names from absolute and dynamic (like `set_gpio23` in action server) to relative: [this commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/7cf8336e4a508b6d51be4a6c757a95f96e1e0a2b) and [this](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/e042683342d598c946cc204f390ec701073c2962)
 
 
 create launch package:
