@@ -79,7 +79,7 @@ ament_python_install_package(${PROJECT_NAME})
 ```
 Build. Install source.
 
-
+**robot_bringup v1** [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/ddaf8259d0ebdcf3ec2eff74e3b79f4a2996aeb3). But a have to repeat myseld by creating the same topic names in different launch files/ It's easy to make mestake, so I need single source of topic names
 
 
 |lesson|case|commit changes|
