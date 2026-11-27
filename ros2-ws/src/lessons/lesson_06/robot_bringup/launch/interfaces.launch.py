@@ -5,7 +5,7 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node, PushROSNamespace
 from launch_ros.substitutions import FindPackageShare
 
-from robot_bringup.utils.launch_utils import get_abs_name, LaunchDefaults
+from robot_bringup.utils.launch_utils import LaunchDefaults, GraphNames
 
 def generate_launch_description():
     params = LaunchConfiguration("params")
@@ -17,12 +17,7 @@ def generate_launch_description():
         "interfaces.yaml"
     ])
 
-    button_state_topic = get_abs_name(namespace, "hardware/button/pressed")
-    long_press_adapter_topic = get_abs_name(namespace, "/interfaces/adapters/button/long_press")
-    short_press_adapter_topic = get_abs_name(namespace, "/interfaces/adapters/button/short_press")
-    red_led_topic = get_abs_name(namespace, "hardware/gpio/red_led/set")
-    green_led_topic = get_abs_name(namespace, "hardware/gpio/green_led/set")
-    arming_atate_topic = get_abs_name(namespace, "/system/state/arming_state")
+    remaps = GraphNames(namespace)
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -47,8 +42,8 @@ def generate_launch_description():
                     namespace="adapters/button",
                     name="long_press_adapter",
                     remappings=[
-                        ("button_state_topic", button_state_topic),
-                        ("long_press", long_press_adapter_topic)
+                        ("button_state_topic", remaps.button_state),
+                        ("long_press", remaps.button_long_press)
                     ],
                     parameters=[params]
                 ),
@@ -59,8 +54,8 @@ def generate_launch_description():
                     namespace="adapters/button",
                     name="short_press_adapter",
                     remappings=[
-                        ("button_state_topic", button_state_topic),
-                        ("short_press", short_press_adapter_topic)
+                        ("button_state_topic", remaps.button_state),
+                        ("short_press", remaps.button_short_press)
                     ],
                     parameters=[params]
                 ),
@@ -71,9 +66,9 @@ def generate_launch_description():
                     namespace="controllers",
                     name="led_arm_disarm_indication_controller",
                     remappings=[
-                        ("set_green_led", green_led_topic),
-                        ("set_red_led", red_led_topic),
-                        ("state_publisher", arming_atate_topic)
+                        ("set_green_led", remaps.set_green_led),
+                        ("set_red_led", remaps.set_red_led),
+                        ("state_publisher", remaps.arming_state)
                     ],
                     parameters=[params]
                 )

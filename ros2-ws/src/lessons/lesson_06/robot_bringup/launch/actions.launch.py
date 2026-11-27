@@ -4,7 +4,7 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node, PushROSNamespace
 from launch_ros.substitutions import FindPackageShare
-from robot_bringup.utils.launch_utils import get_abs_name, LaunchDefaults
+from robot_bringup.utils.launch_utils import LaunchDefaults, GraphNames
 
 
 def generate_launch_description():
@@ -17,10 +17,7 @@ def generate_launch_description():
 
     params = LaunchConfiguration("params")
     namespace = LaunchConfiguration("namespace")
-
-    arming_atate_topic = get_abs_name(namespace, "/system/state/arming_state")
-    blue_led_topic = get_abs_name(namespace, "/hardware/gpio/blue_led/set")
-    short_press_adapter_topic = get_abs_name(namespace, "/interfaces/adapters/button/short_press")
+    remaps = GraphNames(namespace)
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -44,8 +41,8 @@ def generate_launch_description():
                     executable="blink_action_server",
                     name="action_server",
                     remappings=[
-                        ("arming_state", arming_atate_topic),
-                        ("set_blue_led", blue_led_topic)
+                        ("arming_state", remaps.arming_state),
+                        ("set_blue_led", remaps.set_blue_led)
                     ],
                     parameters=[
                         params
@@ -58,7 +55,7 @@ def generate_launch_description():
                     executable="blink_action_client",
                     name="action_client",
                     remappings=[
-                        ("trigger_topic", short_press_adapter_topic)
+                        ("trigger_topic", remaps.button_short_press)
                     ],
                     parameters=[
                         params
