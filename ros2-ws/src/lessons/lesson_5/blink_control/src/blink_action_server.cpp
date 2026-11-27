@@ -22,7 +22,7 @@ ActionServer::ActionServer(
 
     // topics
     gpio_line_pub_ = create_publisher<std_msgs::msg::Bool>(
-        "set_gpio23",
+        "set_blue_led",
         10
     );
 

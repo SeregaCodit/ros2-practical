@@ -43,7 +43,7 @@ def generate_launch_description():
             executable="led_node",
             name="blue_led_node",
             remappings=[
-                ("set_line", "/set_gpio23")
+                ("set_line", "set_blue_led")
             ],
             parameters=[{
                 "line": ParameterValue(blue_led_line, value_type=int)

@@ -43,13 +43,13 @@ public:
         );
 
         // PUBLISH TO LED DRIVERS
-        gpio22_publisher_ = create_publisher<Bool>(
-            "set_gpio22",
+        green_led_publisher_ = create_publisher<Bool>(
+            "set_green_led",
             rclcpp::QoS(10)
         );
 
-        gpio27_publisher_ = create_publisher<Bool>(
-            "set_gpio27",
+        red_led_publisher_ = create_publisher<Bool>(
+            "set_red_led",
             rclcpp::QoS(10)
         );
 
@@ -88,16 +88,16 @@ private:
             }
         } 
 
-        gpio22_publisher_->publish(gpio22_msg);
-        gpio27_publisher_->publish(gpio27_msg);
+        green_led_publisher_->publish(gpio22_msg);
+        red_led_publisher_->publish(gpio27_msg);
     }
     std::shared_ptr<led_indication_parameters::ParamListener> param_listener_;
 
     ArmingState state_;
     rclcpp::Subscription<ArmingState>::SharedPtr state_subscription_;
 
-    rclcpp::Publisher<Bool>::SharedPtr gpio22_publisher_;
-    rclcpp::Publisher<Bool>::SharedPtr gpio27_publisher_;
+    rclcpp::Publisher<Bool>::SharedPtr green_led_publisher_;
+    rclcpp::Publisher<Bool>::SharedPtr red_led_publisher_;
 
     rclcpp::TimerBase::SharedPtr timer_;
 };

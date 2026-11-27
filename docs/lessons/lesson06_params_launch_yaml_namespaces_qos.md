@@ -50,6 +50,36 @@ create launch package:
 ros2 pkg create robot_bringup --build_type ament_cmake --license Apache-2.0
 ```
 
+add to `package.xml` file launch exec dependencies:
+```xml
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ros2launch</exec_depend>
+```
+
+create `config` and `launch` directories in the package dir. Then install them in CMakeLists.txt:
+
+```cmake
+install(
+  DIRECTORY config launch
+  DESTINATION share/${PROJECT_NAME}
+)
+```
+
+therewhy we using custom puthon modules and package was built with ament_cmake add to `package.xml`
+```xml
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+```
+and `CMakeLists.txt`:
+
+```cmake
+find_package(ament_cmake_python REQUIRED)
+
+ament_python_install_package(${PROJECT_NAME})
+```
+Build. Install source.
+
+
 
 
 |lesson|case|commit changes|
