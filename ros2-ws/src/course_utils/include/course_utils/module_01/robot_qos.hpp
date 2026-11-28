@@ -17,4 +17,13 @@ namespace robot_qos{
         );
     }
 
+    inline rclcpp::QoS button_pressed_qos(){
+        return rclcpp::QoS(
+            rclcpp::KeepLast(5) 
+        )
+        .reliable()
+        .durability_volatile()
+        .deadline(std::chrono::milliseconds(300));
+    }
+
 } // namespace robot_qos

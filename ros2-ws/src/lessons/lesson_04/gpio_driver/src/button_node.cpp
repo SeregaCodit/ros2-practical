@@ -1,14 +1,16 @@
+#include <iostream>
+#include <memory>
+#include <string>
+#include <chrono>
+
 #include <gpiod.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 
 #include <course_utils/debouncer.hpp>
+#include <course_utils/module_01/robot_qos.hpp>
 #include "gpio_driver/button_parameters.hpp"
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <chrono>
 
 
 using namespace std::chrono_literals;
@@ -46,10 +48,13 @@ public:
                         .set_direction(gpiod::line::direction::INPUT)
                         .set_bias(gpiod::line::bias::PULL_UP)
                 ).do_request());
+        
+
+        const auto publisher_qos = robot_qos::button_pressed_qos();
 
         publisher_ = create_publisher<std_msgs::msg::Bool>(
             "button_state",
-            rclcpp::QoS(10)
+            publisher_qos
         );
 
         sample_timer_ = create_wall_timer(
@@ -60,9 +65,7 @@ public:
         publish_timer_ = create_wall_timer(
             100ms,
             [this](){
-                std_msgs::msg::Bool msg;
-                msg.data = debouncer_.state();
-                publisher_->publish(msg);
+                publish_state();
             }
         );
 
@@ -70,12 +73,21 @@ public:
     }   
 
 private:
+    void publish_state(){
+        std_msgs::msg::Bool msg;
+        msg.data = debouncer_.state();
+        publisher_->publish(msg);
+    }
+
     void sample(){
-        const bool raw_pressed = request_->get_value(line_) == gpiod::line::value::INACTIVE;
+        const bool raw_pressed = 
+            request_->get_value(line_) == gpiod::line::value::INACTIVE;
 
         bool changed = debouncer_.update(raw_pressed, Clock::now());
 
         if (changed){
+            publish_state();
+            
             RCLCPP_INFO(get_logger(), "button state chenged to %s",
             debouncer_.state()
                 ? "pressed"

@@ -1,4 +1,5 @@
 #include "button_short_press_adapter/button_short_press_adapter.hpp"
+#include <course_utils/module_01/robot_qos.hpp>
 
 
 ButtonShortPressAdapter::ButtonShortPressAdapter()
@@ -10,12 +11,21 @@ ButtonShortPressAdapter::ButtonShortPressAdapter()
     );
     params_ = param_listener_->get_params();
 
+    const auto button_sub_qos = robot_qos::button_pressed_qos();
+    rclcpp::SubscriptionOptions sub_options;
+
+    sub_options.event_callbacks.deadline_callback =
+        [this](rclcpp::QOSDeadlineRequestedInfo & info){
+            on_qos_deadline_callback(info);
+        };
+
     button_sub_ = create_subscription<std_msgs::msg::Bool>(
         "button_state_topic",
-        rclcpp::QoS(10),
+        button_sub_qos,
         [this](const std_msgs::msg::Bool::SharedPtr msg){
             on_button_state(msg);
-        }
+        },
+        sub_options
     );
 
     short_press_publisher_ = create_publisher<std_msgs::msg::Bool>(
@@ -27,6 +37,18 @@ ButtonShortPressAdapter::ButtonShortPressAdapter()
         get_logger(),
         "INITIALIZED"
     );
+}
+
+void ButtonShortPressAdapter::on_qos_deadline_callback(
+    rclcpp::QOSDeadlineRequestedInfo & info
+){
+    // just warnin
+    RCLCPP_WARN(
+        get_logger(),
+        "Button state deadline missed. Count: %d",
+        info.total_count
+    );
+
 }
 
 void ButtonShortPressAdapter::on_button_state(

@@ -21,6 +21,10 @@ private:
         const std_msgs::msg::Bool::SharedPtr msg
     );
 
+    void on_qos_deadline_callback(
+        rclcpp::QOSDeadlineRequestedInfo & info
+    );
+    
     // params
     std::shared_ptr<short_press_adapter_parameters::ParamListener> param_listener_;
     short_press_adapter_parameters::Params params_;

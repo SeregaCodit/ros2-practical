@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(course_utils REQUIRED)
 find_package(generate_parameter_library REQUIRED)
 
 generate_parameter_library(short_press_adapter_parameters
@@ -28,6 +29,7 @@ target_include_directories(button_short_press_adapter
 target_link_libraries(button_short_press_adapter
   rclcpp::rclcpp
   std_msgs::std_msgs
+  course_utils::course_utils
   short_press_adapter_parameters
 )
 
