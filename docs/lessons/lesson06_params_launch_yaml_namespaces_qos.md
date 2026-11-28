@@ -364,3 +364,7 @@ refactor to `reliable` `transient_local` `QoS` policies. Also refactor timer pub
 As you can see we have written segnificantly more code than before. **Wat's the point?** This approach allows a reduction in the volume of  messages by hundreds or even thousands of times. This is extreamly useful  for large-scale systems. Our system however, is to simple to fully appreciate all the benefits of `QoS` managment. 
 
 Make a single sourse of `QoS` profiles - [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/1e2c1e0d0ba018223010cf02a3b86b47564dc063)
+
+|topic| policies| description | commit|
+|---|---|---|---|
+|hardware/button/pressed|rclcpp::KeepLast(5)<br>reliable<br>durability_volatile<br>deadline(std::chrono::milliseconds(300))|in this case subscribercies callbacks implemented just warning. Real implementation needs state reset| [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/611b6d65e50fa47cea19c61a804ebe96ae78123d)|
