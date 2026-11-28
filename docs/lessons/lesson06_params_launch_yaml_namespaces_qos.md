@@ -359,3 +359,6 @@ QoS profile:
   Liveliness: AUTOMATIC
   Liveliness lease duration: Infinite
 ```
+
+refactor to `reliable` `transient_local` `QoS` policies. Also refactor timer publishing to `leveliness` control - [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/26a10ccaea51b9fdbc45befdccd6f120f42b022b) 
+As you can see we have written segnificantly more code than before. **Wat's the point?** This approach allows a reduction in the volume of  messages by hundreds or even thousands of times. This is extreamly useful  for large-scale systems. Our system however, is to simple to fully appreciate all the benefits of `QoS` managment. 
