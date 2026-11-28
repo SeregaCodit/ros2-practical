@@ -26,20 +26,58 @@ public:
             );
         
         const auto params = param_listener_->get_params();
+        
+        // ARMING STATE RECIVING
+        const auto state_qos = rclcpp::QoS(
+            rclcpp::KeepLast(1)
+        )
+        .reliable()
+        .transient_local()
+        .liveliness(
+            RMW_QOS_POLICY_LIVELINESS_AUTOMATIC
+        )
+        .liveliness_lease_duration(
+            std::chrono::seconds(2)
+        );
+
+        rclcpp::SubscriptionOptions sub_options;
+
+        sub_options.event_callbacks.liveliness_callback =
+            [this](rclcpp::QOSLivelinessChangedInfo & info) {
+                if (info.alive_count == 0) {
+                    state_valid_ = false;
+                    publish_gpio_states();
+
+                    RCLCPP_ERROR(
+                        get_logger(),
+                        "Arm controller is not alive. Failsafe."
+                    );
+                }
+            };
 
         state_subscription_ = create_subscription<ArmingState>(
             "state_publisher",
-            rclcpp::QoS(10),
+            state_qos,
             [this](const ArmingState &msg){
+                
+                state_valid_ = 
+                    msg.state == ArmingState::ARMED ||
+                    msg.state == ArmingState::DISARMED;
+                
+                if  (!state_valid_){
+                    RCLCPP_ERROR(
+                        get_logger(),
+                        "Invalid Arming State Recived"
+                    );
+                    
+                    return;
+                }
+                
                 state_ = msg;
-                // RCLCPP_INFO_STREAM(
-                //     get_logger(),
-                //     "got state:\n"
-                //     << system_interfaces::msg::to_yaml(msg)
-                // );
 
                 publish_gpio_states();
-            }
+            },
+            sub_options
         );
 
         // PUBLISH TO LED DRIVERS
@@ -68,32 +106,25 @@ public:
     }
 private:
     void publish_gpio_states(){
-        Bool gpio22_msg;
-        Bool gpio27_msg;
+        Bool green_led_msg;
+        Bool red_led_msg;
 
-        if (state_.state == ArmingState::ARMED){
-            gpio22_msg.data = true;
-            gpio27_msg.data = false;
-        } else {
-            gpio22_msg.data = false;
-            gpio27_msg.data = true;
+        const bool armed = 
+            state_valid_ &&
+            state_.state == ArmingState::ARMED;
 
-            if (state_.state != ArmingState::DISARMED){
-                RCLCPP_ERROR(
-                    get_logger(),
-                    "invalid ArmingState"
-                );
-                
-                throw std::invalid_argument("invalid ArmingState");
-            }
-        } 
+        green_led_msg.data = armed;
+        red_led_msg.data = !armed;
 
-        green_led_publisher_->publish(gpio22_msg);
-        red_led_publisher_->publish(gpio27_msg);
+        green_led_publisher_->publish(green_led_msg);
+        red_led_publisher_->publish(red_led_msg);
     }
+
+
     std::shared_ptr<led_indication_parameters::ParamListener> param_listener_;
 
     ArmingState state_;
+    bool state_valid_{false};
     rclcpp::Subscription<ArmingState>::SharedPtr state_subscription_;
 
     rclcpp::Publisher<Bool>::SharedPtr green_led_publisher_;
@@ -112,7 +143,7 @@ int main(int argc, char ** argv){
         auto node = std::make_shared<LedArmingIndicationController>();
         rclcpp::spin(node);
     } catch (const std::exception & ex) {
-        std::cerr << "ArmController node error:\n"
+        std::cerr << "led_arming_indication_controller node error:\n"
         << ex.what() << "\n";
 
         result = 1;

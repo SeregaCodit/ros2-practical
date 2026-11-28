@@ -61,17 +61,30 @@ public:
         );
 
         // ARMING STATE
-        arming_state_pub_ = create_publisher<system_interfaces::msg::ArmingState>(
-            "arming_state",
-            rclcpp::QoS(10)
+        const auto state_qos = rclcpp::QoS(
+            rclcpp::KeepLast(1)
+        ).reliable()
+        .transient_local()
+        .liveliness(
+            RMW_QOS_POLICY_LIVELINESS_AUTOMATIC
+        )
+        .liveliness_lease_duration(
+            std::chrono::seconds(2)
         );
 
-        arming_state_pub_timer_ = create_wall_timer(
-            std::chrono::milliseconds(params.state_pub_ms),
-            [this](){
-                arming_state_pub_->publish(state_);
-            }
+        arming_state_pub_ = create_publisher<system_interfaces::msg::ArmingState>(
+            "arming_state",
+            state_qos
         );
+
+        arming_state_pub_->publish(state_);
+
+        // arming_state_pub_timer_ = create_wall_timer(
+        //     std::chrono::milliseconds(params.state_pub_ms),
+        //     [this](){
+        //         arming_state_pub_->publish(state_);
+        //     }
+        // );
 
 
         RCLCPP_INFO(get_logger(), "INITIALIZED");
@@ -183,6 +196,7 @@ private:
 
                             state_.stamp = now();
                             ++state_.revision;
+                            arming_state_pub_->publish(state_);
                         }
 
                         RCLCPP_INFO_STREAM(get_logger(), "current state:\n"
@@ -224,7 +238,7 @@ private:
 
     rclcpp::Client<safety_interfaces::srv::AcceptArmDisarm>::SharedPtr arm_disarm_client_;
 
-    rclcpp::TimerBase::SharedPtr arming_state_pub_timer_;
+    // rclcpp::TimerBase::SharedPtr arming_state_pub_timer_;
     rclcpp::TimerBase::SharedPtr request_timeout_timer_;
 
     std::optional<int64_t> pending_request_id_;
