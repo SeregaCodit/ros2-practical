@@ -9,16 +9,21 @@ from sensor_msgs.msg import BatteryState
 from ..core.interfaces.ibattery import IBattery
 from ..infrastructure.liion_18650 import LiIon18650
 
+from ..infrastructure.Battery_voltage_monitor_params import battery_voltage_monitor
 
-TOPIC_NAME = "/robot/diagnostics/ups_battery_state"
+
+TOPIC_NAME = "ups_battery_state"
 
 
 class BatteryVoltageMonitor(Node):
     def __init__(self, battery: IBattery):
         super().__init__("ups_battery_voltage_monitor")
 
-        self.declare_parameter("msg_timeout_sec", 3.0)
-        self.declare_parameter("watchdog_period_sec", 0.5)
+        self._params_listener = battery_voltage_monitor.ParamListener(self)
+        self._params = self._params_listener.get_params();
+
+        if self._params.watchdog_period_s >= self._params.msg_timeout_s:
+            raise ValueError("watchdog_period_s must be < msg_timeout_s" )
 
         self.__battery = battery
         self.__prev_status_val: int = -1
@@ -26,12 +31,12 @@ class BatteryVoltageMonitor(Node):
         # Watchdog state
         self._last_msg_time = time.monotonic()
         self._telemetry_timed_out = False
-        self._msg_timeout_sec = self.get_parameter("msg_timeout_sec").value
+        self._msg_timeout_sec = self._params.msg_timeout_s
 
         self.suscription = self.create_subscription(BatteryState, TOPIC_NAME, self.callback, 10)
 
         self._watchdog_timer = self.create_timer(
-            self.get_parameter("watchdog_period_sec").value,
+            self._params.msg_timeout_s,
             self.__check_telemetry,
         )
 
@@ -80,7 +85,6 @@ class BatteryVoltageMonitor(Node):
                 "UPS battery telemetry timeout: "
                 f"no valid voltage measurements for {elapsed:.1f} s"
             )
-            
 
 
 def main(args=None):

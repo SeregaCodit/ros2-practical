@@ -1,0 +1,4 @@
+/**:
+  ros__parameters:
+    safe_temperature_c: 80.0
+    warning_temperature_c: 75.0

@@ -7,6 +7,8 @@
 #include <string>
 #include <chrono>
 
+#include "gpio_driver/led_parameters.hpp"
+
 using namespace std::chrono_literals;
 using Clock = std::chrono::steady_clock;
 
@@ -15,13 +17,16 @@ class LedNode final : public rclcpp::Node
 {
 public: 
     LedNode() : Node("led_node"){
-        const auto chip_path = declare_parameter<std::string>(
-            "chip", "/dev/gpiochip0"
-        );
 
-        line_ = declare_parameter<int>("line", 27);
+        param_listener_ =
+            std::make_shared<led_params::ParamListener>(
+                get_node_parameters_interface()
+            );
 
-        gpiod::chip chip(chip_path);
+        params_ = param_listener_->get_params();
+        line_ = params_.line;
+
+        gpiod::chip chip(params_.chip);
         
         request_ = std::make_unique<gpiod::line_request>(
             chip.prepare_request()
@@ -38,7 +43,7 @@ public:
         subscription_ = create_subscription<std_msgs::msg::Bool>(
             // best practice - is giving relative names. 
             //It allows to use remapping in launch files and simple reusing node
-            "/hardware/led/set", 
+            "set_line", 
             
             rclcpp::QoS(10),
             [this](std_msgs::msg::Bool::SharedPtr msg){
@@ -59,16 +64,7 @@ public:
             }
         );
 
-        // setup watchdog timeout
-        const auto timeout_ms = declare_parameter<int64_t>(
-            "signal_failsafe_timeout_ms", 2000
-        );
-
-        if (timeout_ms <= 0){
-            throw std::invalid_argument("signal_failsafe_timeout_ms must be positive");
-        };
-
-        signal_failsafe_timeout_ = std::chrono::milliseconds{timeout_ms};
+        signal_failsafe_timeout_ = std::chrono::milliseconds{params_.watchdog_timeout_ms};
 
         watchdog_signal_ = create_wall_timer(
             100ms,
@@ -115,11 +111,17 @@ private:
         );
     }
 
-    int line_;
+    // parameters
+    std::shared_ptr<led_params::ParamListener> param_listener_;
+    led_params::Params params_;
+
+    // ros interfaces
     std::unique_ptr<gpiod::line_request> request_;
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr subscription_;
     rclcpp::TimerBase::SharedPtr watchdog_signal_;
-
+    
+    // internal state
+    int line_;
     bool failsafe_triggered_ = false;
     Clock::time_point last_signal_at{Clock::now()};
     std::chrono::milliseconds signal_failsafe_timeout_;

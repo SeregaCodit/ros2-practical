@@ -1,0 +1,8 @@
+led_toggle:
+  timeout_ms:
+    type: int
+    default_value: 2000
+    description: "failsafe signal timeout in milliseconds"
+    read_only: true
+    validation:
+      bounds<>: [100, 5000]

@@ -51,6 +51,7 @@ RUN apt-get update && apt-get install -y \
     # demo_nodes 
     # ros-${ROS_DISTRO}-demo-nodes-cpp \
     # ros-${ROS_DISTRO}-demo-nodes-py \
+    ros-${ROS_DISTRO}-generate-parameter-library \
     # description tools
     ros-${ROS_DISTRO}-xacro \
     ros-${ROS_DISTRO}-joint-state-publisher-gui \

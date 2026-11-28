@@ -39,7 +39,7 @@ def generate_launch_description():
             executable="led_node",
             name="red_led_node",
             remappings =[
-                ("/hardware/led/set", "/set_gpio27")
+                ("set_line", "set_red_led")
             ],
             parameters=[{
                 "line": ParameterValue(red_led_line, value_type=int)
@@ -52,7 +52,7 @@ def generate_launch_description():
             executable="led_node",
             name="green_led_node",
             remappings =[
-                ("/hardware/led/set", "/set_gpio22")
+                ("set_line", "set_green_led")
             ],
             parameters=[{
                 "line": ParameterValue(green_led_line, value_type=int)
@@ -82,7 +82,7 @@ def generate_launch_description():
             executable="button_long_press_adapter",
             name="button_long_press_adapter",
             remappings=[
-                ("/button_state_topic", "/hardware/button/pressed")
+                ("button_state_topic", "button_state")
             ],
             output="screen"
         ),
@@ -92,8 +92,8 @@ def generate_launch_description():
             executable="arm_disarm_manager",
             name="arm_disarm_manager",
             remappings=[
-                ("/battery_state_topic", "/robot/diagnostics/ups_battery_state"),
-                ("range_sensor_topic", "/range_topic")
+                ("battery_state_topic", "ups_battery_state"),
+                ("range_sensor_topic", "range_topic")
             ],
             parameters=[{
                 "heartbeat_timeout_ms": 2000

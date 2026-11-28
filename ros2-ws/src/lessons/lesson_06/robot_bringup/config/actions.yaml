@@ -1,0 +1,5 @@
+# BLINKING
+/**/actions/blink/action_client:
+  ros__parameters:
+    cycles: 50
+    half_period_ms: 100

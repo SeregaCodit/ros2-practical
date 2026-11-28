@@ -11,13 +11,19 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(safety_interfaces REQUIRED)
 find_package(system_interfaces REQUIRED)
+find_package(course_utils REQUIRED)
+find_package(generate_parameter_library REQUIRED)
+
+generate_parameter_library(button_long_press_adapter_params
+  params/button_long_press_adapter_params.yaml
+)
 
 add_executable(button_long_press_adapter src/button_long_press_adapter.cpp)
 
-target_include_directories(button_long_press_adapter
-  PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
+# target_include_directories(button_long_press_adapter
+#   PRIVATE
+#     ${CMAKE_CURRENT_SOURCE_DIR}/include
+# )
 
 
 target_link_libraries(button_long_press_adapter
@@ -25,6 +31,8 @@ target_link_libraries(button_long_press_adapter
   std_msgs::std_msgs
   safety_interfaces::safety_interfaces
   system_interfaces::system_interfaces
+  course_utils::course_utils
+  button_long_press_adapter_params
 )
 
 INSTALL(

@@ -32,7 +32,7 @@ def generate_launch_description():
             executable="button_short_press_adapter",
             name="button_short_press_adapter",
             remappings=[
-                ("/button_state_topic", "/hardware/button/pressed")
+                ("/button_state_topic", "button_state")
             ],
             parameters=[{
                 "max_push_period_ms": ParameterValue(short_press_period, value_type=int)
@@ -43,7 +43,7 @@ def generate_launch_description():
             executable="led_node",
             name="blue_led_node",
             remappings=[
-                ("/hardware/led/set", "/set_gpio23")
+                ("set_line", "set_blue_led")
             ],
             parameters=[{
                 "line": ParameterValue(blue_led_line, value_type=int)
@@ -63,7 +63,7 @@ def generate_launch_description():
             executable="blink_action_client",
             name="blink_action_client",
             remappings=[
-                ("/button/short_single_press", "/short_press")
+                ("trigger_topic", "short_press")
             ],
             parameters=[{
                 "cycles": ParameterValue(action_cycles, value_type=int),

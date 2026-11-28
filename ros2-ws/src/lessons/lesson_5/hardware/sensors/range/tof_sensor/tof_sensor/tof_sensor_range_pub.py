@@ -6,10 +6,8 @@ from rclpy.node import Node
 from rclpy.executors import ExternalShutdownException
 from sensor_msgs.msg import Range
 from adafruit_extended_bus import ExtendedI2C
+from tof_sensor.tof_sensor_params import tof_sensor_parameters
 
-
-PUBLISH_RATE_HZ: str = "publish_rate_hz"
-FRAME_ID: str = "frame_id"
 TOPIC_NAME: str = "range_topic"
 
 
@@ -21,18 +19,8 @@ class VL53L0X(Node):
 
     def __init__(self):
         super().__init__("tof_raw_range")
-
-        self.declare_parameter(PUBLISH_RATE_HZ, 10)
-        self.declare_parameter(FRAME_ID, "tof_link")
-
-        rate = self.get_parameter(PUBLISH_RATE_HZ).value
-
-        if not math.isfinite(rate) or rate <= 0:
-            raise ValueError(f"{PUBLISH_RATE_HZ} must be positive and finite. \
-                             Got {rate}")
-
-        self.frame_id = self.get_parameter(FRAME_ID).value
-
+        self._param_listener = tof_sensor_parameters.ParamListener(self)
+        self._params =self._param_listener.get_params()
 
         self.i2c = ExtendedI2C(1)
         self.sensor = adafruit_vl53l0x.VL53L0X(self.i2c)
@@ -45,7 +33,7 @@ class VL53L0X(Node):
         )
 
         self._pub_timer = self.create_timer(
-            1.0 / rate,
+            1.0 / self._params.publish_rate_hz,
             self._publish_range
         )
         
@@ -74,7 +62,7 @@ class VL53L0X(Node):
         msg = Range()
 
         msg.header.stamp = stamp
-        msg.header.frame_id = self.frame_id
+        msg.header.frame_id = self._params.frame_id
         msg.radiation_type = self.RADIATION_TYPE
         msg.field_of_view = self.FOV_RAD
         msg.min_range = self.MIN_RANGE_M

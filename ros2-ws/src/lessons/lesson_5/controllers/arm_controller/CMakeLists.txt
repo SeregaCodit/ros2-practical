@@ -11,6 +11,12 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(safety_interfaces REQUIRED)
 find_package(system_interfaces REQUIRED)
+find_package(course_utils REQUIRED)
+find_package(generate_parameter_library REQUIRED)
+
+generate_parameter_library(arm_controller_params
+  params/arm_controller_params.yaml
+)
 
 add_executable(arm_controller src/arm_controller.cpp)
 
@@ -25,6 +31,8 @@ target_link_libraries(arm_controller
     std_msgs::std_msgs
     safety_interfaces::safety_interfaces
     system_interfaces::system_interfaces
+    course_utils::course_utils
+    arm_controller_params
 )
 
 INSTALL(

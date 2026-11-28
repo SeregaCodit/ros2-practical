@@ -8,7 +8,7 @@ from ups_monitor.core.interfaces.ibattery_reader import IBatteryStatus
 from ..infrastructure.ups_hat_b_ina219 import UpsHatBIna219
 
 
-TOPIC_NAME = "/robot/diagnostics/ups_battery_state"
+TOPIC_NAME = "ups_battery_state"
 FRAME_ID = "base_link"
 I2C_BUS = 1
 

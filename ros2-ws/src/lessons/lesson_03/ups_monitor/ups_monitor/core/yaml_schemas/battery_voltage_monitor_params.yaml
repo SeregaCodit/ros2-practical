@@ -1,0 +1,17 @@
+battery_voltage_monitor:
+  msg_timeout_s:
+    type: double
+    default_value: 3.0
+    description: "Maximum time period between messges.
+                 If no messages fom publisher during this time - failsafe will be applied"
+    read_only: true
+    validation:
+      bounds<>: [0.3, 10.0]
+
+  watchdog_period_s:
+    type: double
+    default_value: 0.5
+    description: "watchdog time to check freshness of voltage sensor message"
+    read_only: true
+    validation:
+      bounds<>: [0.1, 1.0]

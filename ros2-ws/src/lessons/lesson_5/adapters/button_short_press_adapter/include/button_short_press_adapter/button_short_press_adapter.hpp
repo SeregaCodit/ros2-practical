@@ -4,6 +4,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include "std_msgs/msg/bool.hpp"
 
+#include "button_short_press_adapter/short_press_adapter_parameters.hpp"
+
 
 class ButtonShortPressAdapter final : public rclcpp::Node
 {
@@ -18,6 +20,14 @@ private:
     void on_button_state(
         const std_msgs::msg::Bool::SharedPtr msg
     );
+
+    void on_qos_deadline_callback(
+        rclcpp::QOSDeadlineRequestedInfo & info
+    );
+    
+    // params
+    std::shared_ptr<short_press_adapter_parameters::ParamListener> param_listener_;
+    short_press_adapter_parameters::Params params_;
 
     // ROS2 interfaces
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr button_sub_;

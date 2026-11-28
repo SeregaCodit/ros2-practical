@@ -63,6 +63,8 @@ private:
         std::shared_ptr<GoalHandle> goal_handle
     );
 
+    void on_liveliness_change_info(const rclcpp::QOSLivelinessChangedInfo & info);
+
     // helping fucntions
     void finish(
         std::shared_ptr<GoalHandle> goal_handle,
@@ -73,6 +75,8 @@ private:
     void execute(
         std::shared_ptr<GoalHandle> goal_handle
     );
+
+    void revoke_arm_permission_locked();
 
     void on_arming_state(const ArmingState & msg);
 
@@ -97,7 +101,8 @@ private:
     bool armed_{false};
     bool busy_{false};
     bool stopping_{false};
-    bool disarm_requested_{false};  
+    bool disarm_requested_{false};
+    bool state_valid_{false};
 };
 
 } // blink_control

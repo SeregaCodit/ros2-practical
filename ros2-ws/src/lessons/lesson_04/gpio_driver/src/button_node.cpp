@@ -1,13 +1,16 @@
+#include <iostream>
+#include <memory>
+#include <string>
+#include <chrono>
+
 #include <gpiod.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 
 #include <course_utils/debouncer.hpp>
+#include <course_utils/module_01/robot_qos.hpp>
+#include "gpio_driver/button_parameters.hpp"
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <chrono>
 
 
 using namespace std::chrono_literals;
@@ -19,16 +22,20 @@ public:
 
     ButtonNode() 
     :   Node("button_node"),
+        param_listener_{
+            std::make_shared<button_params::ParamListener>(
+                get_node_parameters_interface()
+            )
+        },
+        params_{param_listener_->get_params()},
         debouncer_{
             Debouncer::Duration{
-                declare_parameter<int>("debounce_ms", 30)
+                params_.debounce_ms
             }
         }
     {
-        const auto chip_path = declare_parameter<std::string>(
-            "chip", "/dev/gpiochip0"
-        );
-        line_ = declare_parameter<int>("line", 17);
+        const auto chip_path = params_.chip;
+        line_ = params_.line;
 
         gpiod::chip chip(chip_path);
 
@@ -41,10 +48,13 @@ public:
                         .set_direction(gpiod::line::direction::INPUT)
                         .set_bias(gpiod::line::bias::PULL_UP)
                 ).do_request());
+        
+
+        const auto publisher_qos = robot_qos::button_pressed_qos();
 
         publisher_ = create_publisher<std_msgs::msg::Bool>(
-            "/hardware/button/pressed",
-            rclcpp::QoS(10)
+            "button_state",
+            publisher_qos
         );
 
         sample_timer_ = create_wall_timer(
@@ -55,9 +65,7 @@ public:
         publish_timer_ = create_wall_timer(
             100ms,
             [this](){
-                std_msgs::msg::Bool msg;
-                msg.data = debouncer_.state();
-                publisher_->publish(msg);
+                publish_state();
             }
         );
 
@@ -65,12 +73,21 @@ public:
     }   
 
 private:
+    void publish_state(){
+        std_msgs::msg::Bool msg;
+        msg.data = debouncer_.state();
+        publisher_->publish(msg);
+    }
+
     void sample(){
-        const bool raw_pressed = request_->get_value(line_) == gpiod::line::value::INACTIVE;
+        const bool raw_pressed = 
+            request_->get_value(line_) == gpiod::line::value::INACTIVE;
 
         bool changed = debouncer_.update(raw_pressed, Clock::now());
 
         if (changed){
+            publish_state();
+            
             RCLCPP_INFO(get_logger(), "button state chenged to %s",
             debouncer_.state()
                 ? "pressed"
@@ -78,13 +95,20 @@ private:
             );
         }
     }
-
-    Debouncer debouncer_;
-    int line_;
+    
+    //parameters
+    std::shared_ptr<button_params::ParamListener> param_listener_;
+    button_params::Params params_;
+    
+    // ros interfaces
     std::unique_ptr<gpiod::line_request> request_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr publisher_;
     rclcpp::TimerBase::SharedPtr sample_timer_;
     rclcpp::TimerBase::SharedPtr publish_timer_;
+
+    //internal state
+    Debouncer debouncer_;
+    int line_;
 };
 
 

@@ -1,0 +1,33 @@
+# GPIO LINES
+/**/hardware/gpio/*:
+  ros__parameters:
+    chip: "/dev/gpiochip0"
+
+/**/hardware/gpio/button_driver:
+  ros__parameters:
+    line: 17
+    debounce_ms: 30
+
+/**/hardware/gpio/red_led_driver:
+  ros__parameters:
+    line: 27
+
+/**/hardware/gpio/green_led_driver:
+  ros__parameters:
+    line: 22
+
+/**/hardware/gpio/blue_led_driver:
+  ros__parameters:
+    line: 23
+
+
+# SENSORS
+/**/hardware/sensors/tof_sensor:
+  ros__parameters:
+    publish_rate_hz: 10
+    frame_id: "tof_link"
+
+/**/hardware/sensors/battery:
+  ros__parameters:
+    msg_timeout_s: 3.0
+    watchdog_period_s: 0.5

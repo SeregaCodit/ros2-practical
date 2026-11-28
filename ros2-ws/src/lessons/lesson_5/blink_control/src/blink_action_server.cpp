@@ -6,36 +6,42 @@
 #include <thread>
 
 #include "blink_control/blink_action_server.hpp"
-#include "blink_control/action_server_params.hpp"
+#include "blink_control/action_server_defaults.hpp"
+#include <course_utils/module_01/robot_qos.hpp>
 
 
 namespace blink_control{
 
 using namespace std::placeholders;
-// using namespace std::chrono_literals;
+
 
 ActionServer::ActionServer(
     const rclcpp::NodeOptions & options
 )
 : Node("blink_action_server", options)
 {
-    // params
-    declare_parameter(keys::GPIO_LINE, defaults::GPIO_LINE);
-    const auto gpio_line = get_parameter(keys::GPIO_LINE).as_int();
-    const auto topic = "set_gpio" + std::to_string(gpio_line); 
 
     // topics
     gpio_line_pub_ = create_publisher<std_msgs::msg::Bool>(
-        topic,
+        "set_blue_led",
         10
     );
 
     set_line(false);
 
+    // ARMING STATE RECIVING
+    const auto state_qos = robot_qos::arming_state_qos();
+
+    rclcpp::SubscriptionOptions sub_options;
+
+    sub_options.event_callbacks.liveliness_callback =
+        std::bind(&ActionServer::on_liveliness_change_info, this, _1);
+
     arming_state_sub_ = create_subscription<ArmingState>(
         "arming_state",
-        10,
-        std::bind(&ActionServer::on_arming_state, this, _1)
+        state_qos,
+        std::bind(&ActionServer::on_arming_state, this, _1),
+        sub_options
     );
 
     // server
@@ -57,17 +63,9 @@ ActionServer::~ActionServer()
         std::lock_guard<std::mutex> lock(state_mutex_);
 
         stopping_ = true;
-        armed_ = false;
-
-        try{
-            set_line(false);
-        } catch (const std::exception & ex){
-            RCLCPP_ERROR(
-                get_logger(),
-                "Failed to turn off LED:\n%s",
-                ex.what()
-            );
-        }
+        state_valid_ = false;
+        revoke_arm_permission_locked();
+        
     }
 
     wakeup_.notify_all();
@@ -77,6 +75,28 @@ ActionServer::~ActionServer()
     }
 }
 
+void ActionServer::on_liveliness_change_info(
+    const rclcpp::QOSLivelinessChangedInfo & info
+){
+    if (info.alive_count == 0){ 
+        {
+            std::lock_guard<std::mutex> lock(state_mutex_);
+            
+            state_valid_ = false;
+            revoke_arm_permission_locked();
+        }
+        
+        RCLCPP_ERROR(
+            get_logger(),
+            "Arm controller is not alive."
+        );
+    } else if (info.alive_count_change > 0) {
+        RCLCPP_INFO(
+            get_logger(),
+            "Arm controller is alive"
+        );
+    }
+}
 
 rclcpp_action::GoalResponse
 ActionServer::handle_goal(
@@ -102,7 +122,7 @@ ActionServer::handle_goal(
 
     std::lock_guard<std::mutex> lock(state_mutex_); 
 
-    if (stopping_ || !armed_){
+    if (stopping_ || !armed_ || !state_valid_){
         RCLCPP_WARN(
             get_logger(),
             "[REJECTED] system is not ready"
@@ -238,7 +258,13 @@ void ActionServer::execute(
             {
                 std::lock_guard<std::mutex> lock(state_mutex_);
 
-                if (!armed_ || stopping_ || !rclcpp::ok() || disarm_requested_) {
+                if (
+                    !armed_ || 
+                    stopping_ || 
+                    !rclcpp::ok() ||
+                    disarm_requested_ ||
+                    !state_valid_
+                ) {
                     reason = StopReason::ABORTED;
                     break;
 
@@ -295,6 +321,26 @@ void ActionServer::execute(
         finish(goal_handle, reason, completed_cycles);
 }
 
+void ActionServer::revoke_arm_permission_locked(){
+    //Caller must hold state_mutex_.
+    armed_ = false;
+
+    if (busy_) {
+        disarm_requested_ = true;
+    }
+
+    try {
+        set_line(false);
+    } catch (const std::exception & ex) {
+        RCLCPP_ERROR(
+            get_logger(),
+            "Failed to publish LED OFF: %s",
+            ex.what()
+        );
+    }
+
+    wakeup_.notify_all();
+}
 
 // interruption
 ActionServer::StopReason
@@ -341,7 +387,8 @@ ActionServer::interruption_reason(const std::shared_ptr<GoalHandle> & goal_handl
 
         if (!armed_ ||
             stopping_ ||
-            disarm_requested_
+            disarm_requested_ ||
+            !state_valid_
         ){
             return StopReason::ABORTED;
         }
@@ -425,7 +472,6 @@ void ActionServer::finish(
         );
     }
 
-
     // Release execution slot.
     {
         std::lock_guard<std::mutex> lock(state_mutex_);
@@ -452,28 +498,40 @@ void ActionServer::set_line(const bool active){
 
 // sub
 void ActionServer::on_arming_state(const ArmingState & msg){
-    const bool new_state = msg.state == ArmingState::ARMED;
 
     std::lock_guard<std::mutex> lock(state_mutex_);
     
-    if (armed_ && !new_state){
-        
-        if (busy_){
-            disarm_requested_ = true;
-        }
+    state_valid_ = 
+        msg.state == ArmingState::ARMED ||
+        msg.state == ArmingState::DISARMED;
 
+    if (!state_valid_){
+        RCLCPP_ERROR(
+            get_logger(),
+            "Invalid arming state received. Failsafe."
+            
+        );
+
+        revoke_arm_permission_locked();
+        return;
+    }
         
+    if (msg.state == ArmingState::DISARMED) {
         RCLCPP_INFO(
             get_logger(),
-            "System DISARMED!"
+            "System DISARMED"
         );
-        
-        set_line(false);
-        wakeup_.notify_all();
-        
+
+        revoke_arm_permission_locked();
+        return;
     }
     
-    armed_ = new_state;
+    armed_ = true;
+
+    RCLCPP_INFO(
+        get_logger(),
+        "System ARMED"
+    );
 }
 
 } // namespace blink_control

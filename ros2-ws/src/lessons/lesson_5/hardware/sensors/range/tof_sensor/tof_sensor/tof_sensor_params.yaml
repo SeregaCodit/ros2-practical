@@ -1,0 +1,15 @@
+tof_sensor_parameters:
+  publish_rate_hz:
+    type: int
+    default_value: 10
+    description: "Sensor messages publishing frequency in hertzes"
+    read_only: true
+    validation:
+      bounds<>: [1, 20]
+  frame_id:
+    type: string
+    default_value: "tof_link"
+    description: "Name of link"
+    read_only: true
+    validation:
+      size_gt<>: [2]

@@ -13,6 +13,8 @@
 #include "system_interfaces/msg/arming_state.hpp"
 
 #include "arm_controller/params.hpp"
+#include "arm_controller/arm_controller_params.hpp"
+#include <course_utils/module_01/robot_qos.hpp>
 
 
 using ArmingState = system_interfaces::msg::ArmingState;
@@ -26,20 +28,12 @@ public:
     ArmController()
     : Node("arm_controller")
     {   
-        
-        declare_parameter<int64_t>(
-            keys::STATE_PUB_MS,
-            defaults::STATE_PUB_MS
-        );
-        const auto state_pub_ms = get_parameter(
-            keys::STATE_PUB_MS
-        ).as_int();
-
-        if (state_pub_ms <= 0){
-            throw std::invalid_argument(
-                "state_pub_ms must be >= 0"
+        param_listener_ = 
+            std::make_shared<arm_controller_parameters::ParamListener>(
+                get_node_parameters_interface()
             );
-        }
+        
+        const auto params = param_listener_->get_params();
 
         state_.stamp = now();
         state_.revision = 0;
@@ -68,17 +62,14 @@ public:
         );
 
         // ARMING STATE
+        const auto state_qos = robot_qos::arming_state_qos();
+
         arming_state_pub_ = create_publisher<system_interfaces::msg::ArmingState>(
             "arming_state",
-            rclcpp::QoS(10)
+            state_qos
         );
 
-        arming_state_pub_timer_ = create_wall_timer(
-            std::chrono::milliseconds(state_pub_ms),
-            [this](){
-                arming_state_pub_->publish(state_);
-            }
-        );
+        arming_state_pub_->publish(state_);
 
 
         RCLCPP_INFO(get_logger(), "INITIALIZED");
@@ -190,6 +181,7 @@ private:
 
                             state_.stamp = now();
                             ++state_.revision;
+                            arming_state_pub_->publish(state_);
                         }
 
                         RCLCPP_INFO_STREAM(get_logger(), "current state:\n"
@@ -223,7 +215,7 @@ private:
 
         }
     }
-
+    std::shared_ptr<arm_controller_parameters::ParamListener> param_listener_;
 
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr toggle_state_sub_;
 
@@ -231,7 +223,6 @@ private:
 
     rclcpp::Client<safety_interfaces::srv::AcceptArmDisarm>::SharedPtr arm_disarm_client_;
 
-    rclcpp::TimerBase::SharedPtr arming_state_pub_timer_;
     rclcpp::TimerBase::SharedPtr request_timeout_timer_;
 
     std::optional<int64_t> pending_request_id_;

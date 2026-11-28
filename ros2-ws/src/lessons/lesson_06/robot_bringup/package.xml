@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>robot_bringup</name>
+  <version>0.0.0</version>
+  <description>module bringup</description>
+  <maintainer email="serega.codit@gmail.com">Serhii</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ros2launch</exec_depend>
+  # runtime desps
+  <exec_depend>blink_control</exec_depend>
+  <exec_depend>button_long_press_adapter</exec_depend>
+  <exec_depend>button_short_press_adapter</exec_depend>
+  <exec_depend>led_arming_indication_controller</exec_depend>
+  <exec_depend>arming_manager</exec_depend>
+  <exec_depend>arm_controller</exec_depend>
+  <exec_depend>gpio_driver</exec_depend>
+  <exec_depend>ups_monitor</exec_depend>
+  <exec_depend>tof_sensor</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

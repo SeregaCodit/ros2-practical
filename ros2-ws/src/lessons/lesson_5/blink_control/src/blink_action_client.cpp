@@ -1,5 +1,4 @@
 #include "blink_control/blink_action_client.hpp"
-#include "blink_control/action_client_params.hpp"
 
 
 namespace blink_control {
@@ -12,12 +11,14 @@ ActionClient::ActionClient(
 : Node("blink_action_client", options)
 {
     // params
-    declare_parameter(keys::HALF_PERIOD_MS, defaults::HALF_PERIOD_MS);
-    declare_parameter(keys::CYCLES, defaults::CYCLES);
+    param_listener_ =
+    std::make_shared<action_client_parameters::ParamListener>(
+        get_node_parameters_interface()
+    );
 
     // interfaces
     event_sub_ = create_subscription<std_msgs::msg::Bool>(
-        "button/short_single_press",
+        "trigger_topic",
         10,
         std::bind(&ActionClient::on_short_single_press, this, _1)
     );
@@ -63,7 +64,6 @@ void ActionClient::on_short_single_press(
         break;
     case State::ACTIVE:
         cancel_request();
-        state_ = State::CANCEL_REQUESTED;
         break;
     default:
         break;
@@ -72,33 +72,11 @@ void ActionClient::on_short_single_press(
 
 
 bool ActionClient::send_goal(){
-    // get and validate params
+    // get params
+    const auto params = param_listener_->get_params();
 
-    auto cycles = get_parameter(keys::CYCLES).as_int();
-    
-    if (cycles <= 0)
-    {
-        RCLCPP_ERROR(
-            get_logger(),
-            "Cycles parameter must be greater than 0. Got %ld",
-            cycles
-        );
-        
-        return false;
-    }
-    
-    auto half_period_ms = get_parameter(keys::HALF_PERIOD_MS).as_int();
-
-    if (half_period_ms < defaults::MIN_HALF_PERIOD_MS)
-    {
-        RCLCPP_ERROR(
-            get_logger(),
-            "half_period_ms parameter must be greater than %d. Got %ld",
-            defaults::MIN_HALF_PERIOD_MS, half_period_ms
-        );
-        
-        return false;
-    }
+    auto cycles = params.cycles;
+    auto half_period_ms = params.half_period_ms;
     
     // goal
     auto goal_msg = BlinkLed::Goal();
@@ -129,7 +107,6 @@ bool ActionClient::send_goal(){
 void ActionClient::goal_response_callback(
     const GoalHandle::SharedPtr & goal_handle
 ){
-    // цей калбек спрацьовує лише один раз при надсиланні цілі? 
     if (!goal_handle){
         RCLCPP_ERROR(
             get_logger(),

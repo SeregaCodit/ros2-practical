@@ -1,0 +1,17 @@
+cpu_temperature_alarm_notificator:
+  safe_temperature_c:
+    type: double
+    default_value: 80.0
+    description: "Safe CPU temperature in Celsius"
+    read_only: true
+    validation:
+      bounds<>: [70.0, 100.0]
+  
+  warning_temperature_c:
+    type: double
+    default_value: 75.0
+    description: "CPU temperature warning threshold"
+    additional_constraints: "Must be <= safe_temperature_c"
+    read_only: true
+    validation:
+      bounds<>: [0.0, 100.0 ]

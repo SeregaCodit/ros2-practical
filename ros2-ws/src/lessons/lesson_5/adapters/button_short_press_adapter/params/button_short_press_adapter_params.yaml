@@ -1,0 +1,8 @@
+short_press_adapter_parameters:
+  hold_period_ms:
+    type: int
+    default_value: 500
+    description: "Max duration for holding the button to trigger the adapter"
+    read_only: true
+    validation:
+      bounds<>: [250, 500]

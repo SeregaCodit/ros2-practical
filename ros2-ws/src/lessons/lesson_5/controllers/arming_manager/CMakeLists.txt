@@ -12,6 +12,11 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(safety_interfaces REQUIRED)
 find_package(system_interfaces REQUIRED)
+find_package(generate_parameter_library REQUIRED)
+
+generate_parameter_library(arming_manager_params
+  params/arming_manager_params.yaml
+)
 
 add_executable(arm_disarm_manager src/arm_disarm_manager.cpp)
 
@@ -27,9 +32,8 @@ target_link_libraries(arm_disarm_manager
     std_msgs::std_msgs
     safety_interfaces::safety_interfaces
     system_interfaces::system_interfaces
+    arming_manager_params
 )
-
-
 
 INSTALL(
   TARGETS arm_disarm_manager
