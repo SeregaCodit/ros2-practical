@@ -12,6 +12,7 @@ find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(system_interfaces REQUIRED)
 find_package(Threads REQUIRED)
+find_package(course_utils REQUIRED)
 find_package(generate_parameter_library REQUIRED)
 
 generate_parameter_library(action_client_params
@@ -44,6 +45,7 @@ target_link_libraries(blink_action_server
   std_msgs::std_msgs
   system_interfaces::system_interfaces
   Threads::Threads
+  course_utils::course_utils
 )
 target_link_libraries(blink_action_client
   rclcpp::rclcpp

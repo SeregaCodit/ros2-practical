@@ -7,6 +7,7 @@
 
 #include "blink_control/blink_action_server.hpp"
 #include "blink_control/action_server_defaults.hpp"
+#include <course_utils/module_01/robot_qos.hpp>
 
 
 namespace blink_control{
@@ -29,13 +30,7 @@ ActionServer::ActionServer(
     set_line(false);
 
     // ARMING STATE RECIVING
-    const auto state_qos = rclcpp::QoS(
-        rclcpp::KeepLast(1)
-    )
-    .reliable()
-    .transient_local()
-    .liveliness(RMW_QOS_POLICY_LIVELINESS_AUTOMATIC)
-    .liveliness_lease_duration(std::chrono::seconds(2));
+    const auto state_qos = robot_qos::arming_state_qos();
 
     rclcpp::SubscriptionOptions sub_options;
 

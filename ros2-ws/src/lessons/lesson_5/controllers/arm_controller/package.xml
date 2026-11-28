@@ -13,6 +13,7 @@
   <depend>std_msgs</depend>
   <depend>safety_interfaces</depend>
   <depend>system_interfaces</depend>
+  <depend>course_utils</depend>
   <depend>generate_parameter_library</depend>
 
   <test_depend>ament_lint_auto</test_depend>

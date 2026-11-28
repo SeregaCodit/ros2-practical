@@ -8,6 +8,7 @@
 #include "system_interfaces/msg/arming_state.hpp"
 
 #include "led_arming_indication_controller/led_indication_params.hpp"
+#include <course_utils/module_01/robot_qos.hpp>
 
 using ArmingState = system_interfaces::msg::ArmingState;
 using Bool = std_msgs::msg::Bool;
@@ -28,17 +29,7 @@ public:
         const auto params = param_listener_->get_params();
         
         // ARMING STATE RECIVING
-        const auto state_qos = rclcpp::QoS(
-            rclcpp::KeepLast(1)
-        )
-        .reliable()
-        .transient_local()
-        .liveliness(
-            RMW_QOS_POLICY_LIVELINESS_AUTOMATIC
-        )
-        .liveliness_lease_duration(
-            std::chrono::seconds(2)
-        );
+        const auto state_qos = robot_qos::arming_state_qos();
 
         rclcpp::SubscriptionOptions sub_options;
 
