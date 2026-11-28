@@ -83,7 +83,279 @@ Build. Install source.
 
 create common launch file - [commit](https://github.com/SeregaCodit/ros2-practical/commit/390619fb8c0181639df331df0b8374fc67147ba7)
 
+now wr can run all the system by one simple command again:
+```bash
+ros2 launch robot_bringup robot.launch.py
+```
+# QoS - Quality of Service 
+### Core QoS Policies
 
-|lesson|case|commit changes|
-|------|----|--------------|
-|02| + config file<br> + launch for node with config file<br>+ general launch for nodes and launch with included launch parameter support| [commit](https://github.com/SeregaCodit/ros2-practical/pull/10/changes/5eaf14d117bd7dd40c5f713baa57d29257cdddf2)
+#### 1. History
+*Regulates which messages to keep in history.*
+
+| Argument / Value | Interpretation | Example (`rclcpp`) |
+| :--- | :--- | :--- |
+| `KEEP_LAST` | Store only the last `N` messages (defined by Depth). | `qos.keep_last(10);` |
+| `KEEP_ALL` | Store all messages until the middleware resource limits are reached. | `qos.keep_all();` |
+
+#### 2. Depth
+*Regulates the maximum history depth for `KEEP_LAST`.*
+
+| Argument / Value | Interpretation | Example (`rclcpp`) |
+| :--- | :--- | :--- |
+| `size_t` (positive integer) | Size of the message queue buffer (ignored if History is `KEEP_ALL`). | `rclcpp::QoS qos(10);` |
+
+#### 3. Reliability
+*Regulates delivery reliability.*
+
+| Argument / Value | Interpretation | Example (`rclcpp`) |
+| :--- | :--- | :--- |
+| `RELIABLE` | Guarantees message delivery; retries if packets are lost. | `qos.reliable();` |
+| `BEST_EFFORT` | Attempts delivery without retries; prioritizes speed over completeness. | `qos.best_effort();` |
+
+
+| Publisher | Subscriber | Connection |
+| :--- | :--- | :--- |
+| `BEST_EFFORT` | `BEST_EFFORT` | 🟢 Compatible (Best effort) |
+| `BEST_EFFORT` | `RELIABLE` | 🔴 **Incompatible** (No connection) |
+| `RELIABLE` | `BEST_EFFORT` | 🟡 Compatible (Best effort) |
+| `RELIABLE` | `RELIABLE` | 🟢 Compatible (Reliable) |
+
+
+#### 4. Durability
+*Regulates whether previous messages are available to new subscribers.*
+
+| Argument / Value | Interpretation | Example (`rclcpp`) |
+| :--- | :--- | :--- |
+| `VOLATILE` | New subscribers only receive messages published after they join. | `qos.durability_volatile();` |
+| `TRANSIENT_LOCAL` | Publisher persists samples so late-joining subscribers receive past data. | `qos.transient_local();` |
+
+
+| Publisher | Subscriber | Connection |
+| :--- | :--- | :--- |
+| `VOLATILE` | `VOLATILE` | 🟢 Compatible (Volatile) |
+| `VOLATILE` | `TRANSIENT_LOCAL` | 🔴 **Incompatible** (No connection) |
+| `TRANSIENT_LOCAL` | `VOLATILE` | 🟡 Compatible (Volatile — past messages not delivered) |
+| `TRANSIENT_LOCAL` | `TRANSIENT_LOCAL` | 🟢 Compatible (Transient local — past messages delivered) |
+
+#### 5. Deadline
+*Regulates the expected maximum interval between messages.*
+
+| Argument / Value | Interpretation | Example (`rclcpp`) |
+| :--- | :--- | :--- |
+| `Duration` (`std::chrono`) | Triggers an event if no message is published/received within this period. | `qos.deadline(std::chrono::milliseconds(100));` |
+
+#### 6. Lifespan
+*Regulates the message expiration time.*
+
+| Argument / Value | Interpretation | Example (`rclcpp`) |
+| :--- | :--- | :--- |
+| `Duration` (`std::chrono`) | Messages older than this duration are dropped and not delivered. | `qos.lifespan(std::chrono::seconds(5));` |
+
+#### 7. Liveliness
+*Regulates publisher activity monitoring.*
+
+| Argument / Value | Interpretation | Example (`rclcpp`) |
+| :--- | :--- | :--- |
+| `AUTOMATIC` | ROS 2 system automatically considers the publisher alive while the node runs. | `qos.liveliness(rclcpp::LivelinessPolicy::Automatic);` |
+| `MANUAL_BY_TOPIC` | Publisher must explicitly assert liveliness (by publishing or calling assert). | `qos.liveliness(rclcpp::LivelinessPolicy::ManualByTopic);` |
+
+#### 8. Liveliness Lease Duration
+*Regulates the timeout for activity confirmation.*
+
+| Argument / Value | Interpretation | Example (`rclcpp`) |
+| :--- | :--- | :--- |
+| `Duration` (`std::chrono`) | Maximum time before a publisher is marked as inactive/dead if not asserted. | `qos.liveliness_lease_duration(std::chrono::seconds(1));` |
+
+### Standard ROS 2 QoS Profiles
+
+| Profile (`rclcpp` / `rclpy`) | Description | Key Settings (History, Depth, Reliability, Durability) | Use Cases |
+| :--- | :--- | :--- | :--- |
+| **`SystemDefaultsQoS`** | Uses default settings defined by the underlying RMW (DDS) implementation. | `KEEP_LAST`,<br> Depth: RMW default (usually `10`),<br>`RELIABLE`,<br>`VOLATILE` | General-purpose topics when relying on middleware defaults. |
+| **`SensorDataQoS`** | Prioritizes low latency and high frequency over guaranteed delivery of every packet. | `KEEP_LAST`,<br>Depth: `5`,<br>`BEST_EFFORT`,<br>`VOLATILE` | High-frequency sensor streams (LiDAR, cameras, IMU, radar). |
+| **`ServicesQoS`** | Ensures reliable request-response communication without stale queued calls. | `KEEP_LAST`,<br>Depth: `10`,<br>`RELIABLE`,<br>`VOLATILE` | ROS 2 Services and Action service channels. |
+| **`ParametersQoS`** | Guarantees reliable delivery for parameter changes with a deeper queue to prevent drops. | `KEEP_LAST`,<br>Depth: `1000`,<br>`RELIABLE`,<br>`VOLATILE` | Parameter servers, parameter clients, and parameter event topics (`/parameter_events`). |
+| **`ParameterEventsQoS`** | Tailored specifically for broadcasting parameter updates across nodes. | `KEEP_LAST`,<br>Depth: `1000` (C++) / `50` (Python),<br>`RELIABLE`,<br>`VOLATILE` | Monitoring and reacting to node parameter changes in real time. |
+| **`ClockQoS`** | Fast, low-overhead clock synchronization with minimal history. | `KEEP_LAST`,<br>Depth: `1`,<br>`BEST_EFFORT`,<br>`VOLATILE` | Simulation time (`/clock` topic from Gazebo, Isaac Sim, etc.). |
+| **`RosoutQoS`** | Reliable logging stream that retains a large buffer of log messages. | `KEEP_LAST`,<br>Depth: `1000`,<br>`RELIABLE`,<br>`TRANSIENT_LOCAL` | System logging (`/rosout` topic) so late-joining log viewers see recent logs. |
+
+```cpp
+// Standard profile
+auto qos_default = rclcpp::QoS(10);
+
+// Sensor data
+auto qos_sensor = rclcpp::SensorDataQoS();
+
+// Custom profile
+auto qos_state = rclcpp::QoS(
+    rclcpp::KeepLast(1)
+)
+.reliable()
+.transient_local();
+```
+
+```python
+from rclpy.qos import (
+    QoSProfile,
+    ReliabilityPolicy,
+    DurabilityPolicy,
+    HistoryPolicy,
+)
+
+qos_sensor = QoSProfile(
+    history=HistoryPolicy.KEEP_LAST,
+    depth=5,
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    durability=DurabilityPolicy.VOLATILE,
+)
+```
+
+## PRACTICE
+
+### 1. RELIABILITY
+to send a message with qos parameter to the topic:
+```bash
+ros2 topic pub -r 2 --qos-reliability best_effort /qos_lab std_msgs/msg/String "{data: 'hello'}"
+```
+get echo with qos parameter:
+```bash
+ros2 topic echo --qos-reliability reliable /qos_lab
+```
+
+in this case we get warning because of best_effort publisher and reliable subscriber are not compatable:
+```bash
+[WARN] [1795861361.901648457] [_ros2cli_41803]: New publisher discovered on topic '/qos_lab', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY
+```
+check topic profiles:
+```bash
+ros2 topic info /qos_lab --verbose
+```
+got:
+```bash
+Type: std_msgs/msg/String
+
+Publisher count: 1
+
+Node name: _ros2cli_41200
+Node namespace: /
+Topic type: std_msgs/msg/String
+Topic type hash: RIHS01_df668c740482bbd48fb39d76a70dfd4bd59db1288021743503259e948f6b1a18
+Endpoint type: PUBLISHER
+GID: 01.0f.bc.7b.f0.a0.23.1b.00.00.00.00.00.00.07.03
+QoS profile:
+  Reliability: BEST_EFFORT
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 0
+```
+as we can see our `Reliability` is `BEST_EFFORT` so we need to set subscriber `reliability` profile as `BEST_EFFORT` too:
+```bash
+ros2 topic echo --qos-reliability best_effort /qos_lab
+```
+result:
+```bash
+data: hello
+---
+data: hello
+...
+```
+
+### TRANSIENT_LOCAL
+
+Check saved message delivery to a subscriber that connecting later:
+```bash
+ros2 topic pub --once \ 
+  --wait-matching-subscriptions 0 \
+  --keep-alive 60 \
+  --qos-reliability reliable \
+  --qos-durability transient_local \
+  --qos-depth 1 \
+  /qos_state \
+  std_msgs/msg/String \
+  "{data: 'ARMED'}"
+```
+other terminal:
+```bash
+ros2 topic echo \
+  --once \
+  --qos-durability transient_local \
+  --qos-reliability reliable \
+  /qos_state
+```
+we can re-launch this command multiple times. Each time we well get state while publisher is alive.
+
+
+Run new subscriber with `VOLATILE` durability policy:
+```bash
+timeout -s INT 5s ros2 topic echo \
+  --qos-durability volatile \
+  /qos_state
+```
+in this case the subscriber will not recive any messages as the publisher does not actually send any messages after the  subscriber has connected. Furthermore, a subscriber with the  `VOLATILE` value of `durability` policy  does not recive prior messages
+
+### CURRENT ROS-GRAPH
+```bash
+ros2 launch robot_bringup robot.launch.py 
+```
+other terminal:
+```bash
+ros2 topic info /robot_01/system/state/arming_state --verbose
+```
+result:
+```bash
+Type: system_interfaces/msg/ArmingState
+
+Publisher count: 1
+
+Node name: arm_controller
+Node namespace: /robot_01/safety/arm_disarm
+Topic type: system_interfaces/msg/ArmingState
+Topic type hash: RIHS01_4f9f122ef290107c5c20936b7448df705c2dca47b6938c1bc01f5f27813ef9f0
+Endpoint type: PUBLISHER
+GID: 01.0f.bc.7b.24.f3.e0.f1.00.00.00.00.00.00.16.03
+QoS profile:
+  Reliability: RELIABLE
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Subscription count: 2
+
+Node name: led_arm_disarm_indication_controller
+Node namespace: /robot_01/interfaces/controllers
+Topic type: system_interfaces/msg/ArmingState
+Topic type hash: RIHS01_4f9f122ef290107c5c20936b7448df705c2dca47b6938c1bc01f5f27813ef9f0
+Endpoint type: SUBSCRIPTION
+GID: 01.0f.bc.7b.27.f3.d5.98.00.00.00.00.00.00.13.04
+QoS profile:
+  Reliability: RELIABLE
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+
+Node name: action_server
+Node namespace: /robot_01/actions/blink
+Topic type: system_interfaces/msg/ArmingState
+Topic type hash: RIHS01_4f9f122ef290107c5c20936b7448df705c2dca47b6938c1bc01f5f27813ef9f0
+Endpoint type: SUBSCRIPTION
+GID: 01.0f.bc.7b.28.f3.18.2e.00.00.00.00.00.00.14.04
+QoS profile:
+  Reliability: RELIABLE
+  History (Depth): KEEP_LAST (10)
+  Durability: VOLATILE
+  Lifespan: Infinite
+  Deadline: Infinite
+  Liveliness: AUTOMATIC
+  Liveliness lease duration: Infinite
+```
